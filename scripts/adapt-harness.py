@@ -3,10 +3,17 @@
 
 Principles and playbook steps stay. Only named harness APIs change.
 
-This pass rewrites tool ids and the models-file path. It does not rewrite
-model slugs. Official pstack ships a Cursor panel as inline defaults.
-After a refresh, those slugs must not remain as skill fallbacks: omit
-task.model when ~/.grok/pstack-models.toml is absent or inherit-parent/auto.
+This pass rewrites tool ids and, on a fresh official copy, the models-file
+path. It does not rewrite model slugs. Official pstack ships a Cursor panel
+as inline defaults. After a refresh, those slugs must not remain as skill
+fallbacks: omit task.model when ~/.grok/pstack-models.toml is absent or
+inherit-parent/auto.
+
+TEST-PLAN.md, README.md, and docs/ name Cursor ids and ~/.cursor/rules as
+negatives (FAIL tokens, "never write this"). Do not rewrite those files.
+Once a file already contains ~/.grok/pstack-models.toml, leave any remaining
+~/.cursor/rules/pstack-models.mdc mention alone. Otherwise "never create the
+Cursor mdc" becomes "never create the grok toml".
 """
 
 from __future__ import annotations
@@ -17,10 +24,21 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 SKIP_DIRS = {".git", "automations"}
+SKIP_FILES = {
+    "HARNESS.md",
+    "UPSTREAM",
+    "adapt-harness.py",
+    "TEST-PLAN.md",
+    "README.md",
+    "verify-harness.py",
+}
 TEXT_SUFFIXES = {".md", ".toml", ".json", ".ts", ".sh"}
 
+CURSOR_MODELS_PATH = "~/.cursor/rules/pstack-models.mdc"
+GROK_MODELS_PATH = "~/.grok/pstack-models.toml"
+
 REPLACEMENTS: list[tuple[str, str]] = [
-    ("~/.cursor/rules/pstack-models.mdc", "~/.grok/pstack-models.toml"),
+    (CURSOR_MODELS_PATH, GROK_MODELS_PATH),
     ("AskQuestion", "ask_user_question"),
     ("TodoWrite", "todo_write"),
     ('subagent_type: "generalPurpose"', 'subagent_type: "general-purpose"'),
@@ -52,16 +70,29 @@ REPLACEMENTS: list[tuple[str, str]] = [
 
 
 def should_skip(path: pathlib.Path) -> bool:
-    parts = set(path.parts)
-    if parts & SKIP_DIRS:
+    try:
+        rel = path.relative_to(ROOT)
+    except ValueError:
+        rel = path
+    if set(rel.parts) & SKIP_DIRS:
         return True
-    if path.name in {"HARNESS.md", "UPSTREAM", "adapt-harness.py"}:
+    if rel.parts and rel.parts[0] == "docs":
+        return True
+    if path.name in SKIP_FILES:
         return True
     return path.suffix not in TEXT_SUFFIXES and path.name != "SKILL.md"
 
 
 def transform(text: str) -> str:
+    # Fresh official copy: only the Cursor path is present, so rewrite it.
+    # Ported tree: both paths are present on purpose (write grok, never
+    # create Cursor). A blind replace inverts that instruction.
+    replace_models_path = (
+        CURSOR_MODELS_PATH in text and GROK_MODELS_PATH not in text
+    )
     for old, new in REPLACEMENTS:
+        if old == CURSOR_MODELS_PATH and not replace_models_path:
+            continue
         text = text.replace(old, new)
     # Cursor Task `readonly` is not a grok-build task field.
     text = re.sub(
@@ -106,6 +137,17 @@ def assert_no_cursor_model_slugs() -> None:
         )
 
 
+def files_transform_would_change() -> list[str]:
+    hits: list[str] = []
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or should_skip(path):
+            continue
+        original = path.read_text(encoding="utf-8")
+        if transform(original) != original:
+            hits.append(str(path.relative_to(ROOT)))
+    return hits
+
+
 def main() -> None:
     changed = 0
     for path in ROOT.rglob("*"):
@@ -118,6 +160,12 @@ def main() -> None:
             changed += 1
             print(path.relative_to(ROOT))
     print(f"rewrote {changed} files")
+    leftover = files_transform_would_change()
+    if leftover:
+        raise SystemExit(
+            "adapt-harness is not idempotent after this pass:\n  "
+            + "\n  ".join(leftover)
+        )
     assert_no_cursor_model_slugs()
 
 

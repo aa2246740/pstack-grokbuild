@@ -169,6 +169,22 @@ def main() -> None:
             + "\n  ".join(slug_hits)
         )
 
+    # Not a TEST-PLAN pass gate. Catches the adapter eating "never create
+    # ~/.cursor/rules" or rewriting TEST-PLAN FAIL tokens on a second run.
+    import importlib.util
+
+    adapt_path = ROOT / "scripts" / "adapt-harness.py"
+    spec = importlib.util.spec_from_file_location("adapt_harness", adapt_path)
+    adapt = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(adapt)
+    leftover = adapt.files_transform_would_change()
+    if leftover:
+        fail(
+            "adapt-harness transform is not a no-op on this tree:\n  "
+            + "\n  ".join(leftover)
+        )
+
     print("PASS")
     print(f"playbooks: {len(NAMED_22)} named + opening-a-pr")
     print(f"principles: {len(principles)}")
