@@ -374,74 +374,45 @@ On EDITH's Linux Grok Build the live set has been `grok-4.5` and `grok-4.6`. Rec
 
 ### Gate 4 also. Detect the live effort enum
 
-`setup-pstack` step 1b / [`effort-ladder.md`](./skills/setup-pstack/references/effort-ladder.md). Parse `grok --help` (Gate 0 already wrote `$EVIDENCE/gate0-help.txt`). Optionally probe an invalid `--reasoning-effort`. Do **not** send `reasoning_effort` on `task`.
+`setup-pstack` step 1b / [`effort-ladder.md`](./skills/setup-pstack/references/effort-ladder.md). Probe an invalid `--reasoning-effort`. Parse **`use one of:`** from the runtime validator. Do **not** use `Effort::VALID_VALUES` or FromStr `expected one of:` (those include reserved `max`). Do **not** send `reasoning_effort` on `task`.
 
 ```bash
-# Invalid effort probe. Capture the validator list if the error names levels.
+# Invalid effort probe. Capture the live `use one of:` list.
 # Do not send reasoning_effort on task.
-grok --reasoning-effort __pstack_not_an_effort__ -p 'Reply pong and stop.' \
+grok --reasoning-effort not-a-real-effort -p 'Reply pong and stop.' \
   -m "$GROK_MODEL" --always-approve \
   --output-format json \
   --max-turns 1 \
   >"$EVIDENCE/gate4-effort-probe.json" 2>"$EVIDENCE/gate4-effort-probe.err" || true
 head -c 8000 "$EVIDENCE/gate4-effort-probe.err" | tee "$EVIDENCE/gate4-effort-probe.err.head"
 
-python3 - "$EVIDENCE/gate0-help.txt" "$EVIDENCE/gate4-effort-probe.err" \
-  <<'PY' | tee "$EVIDENCE/gate4-detected-efforts.txt"
-import pathlib, re, sys
-blobs = [pathlib.Path(p).read_text(encoding="utf-8", errors="replace") for p in sys.argv[1:]]
-text = "\n".join(blobs)
-drop = {"none", "minimal", "deep"}
-noise = {
-    "reasoning", "effort", "canonical", "levels", "each", "distinct", "tier",
-    "also", "level", "expected", "one", "of", "invalid", "help", "flag",
-    "cli", "value", "values", "possible", "per", "model", "menu", "ids",
-    "like", "tui", "headless",
-}
+LADDER="$(cat "$EVIDENCE/PLUGIN_PATH.txt" 2>/dev/null)/scripts/effort_ladder.py"
+if [ ! -f "$LADDER" ]; then
+  LADDER="./scripts/effort_ladder.py"
+fi
 
-def add_tokens(src, found):
-    for tok in re.findall(r"[A-Za-z][A-Za-z0-9_-]{0,20}", src):
-        t = tok.lower()
-        if "-" in t or t in drop or t in noise or t in found:
-            continue
-        found.append(t)
-
-found = []
-# Prefer FromStr rejection order. Do not freeze a five-token table.
-for m in re.finditer(r"expected one of:\s*([^\n)]+)", text, re.I):
-    add_tokens(m.group(1), found)
-    if found:
-        break
-if not found:
-    for line in text.splitlines():
-        low = line.lower()
-        if "reasoning-effort" not in low and not re.search(r"(?i)--effort\b", line):
-            continue
-        chunk = re.split(r"(?i)\balso\b", line, maxsplit=1)[0]
-        add_tokens(chunk, found)
-print("\n".join(found))
-PY
+python3 "$LADDER" --from-rejection "$EVIDENCE/gate4-effort-probe.err" --print-enum \
+  >"$EVIDENCE/gate4-detected-efforts.txt" || true
+cat "$EVIDENCE/gate4-detected-efforts.txt"
 
 if [ ! -s "$EVIDENCE/gate4-detected-efforts.txt" ]; then
-  printf '%s\n' low medium high xhigh max | tee "$EVIDENCE/gate4-detected-efforts.txt"
+  printf '%s\n' low medium high xhigh | tee "$EVIDENCE/gate4-detected-efforts.txt"
   echo SNAPSHOT >"$EVIDENCE/gate4-effort-source.txt"
 else
   echo LIVE >"$EVIDENCE/gate4-effort-source.txt"
 fi
 
-LADDER="$(cat "$EVIDENCE/PLUGIN_PATH.txt" 2>/dev/null)/scripts/effort_ladder.py"
-if [ ! -f "$LADDER" ]; then
-  LADDER="./scripts/effort_ladder.py"
-fi
 python3 "$LADDER" --enum-file "$EVIDENCE/gate4-detected-efforts.txt" \
   | tee "$EVIDENCE/gate4-expected-tiers.txt"
 ```
 
 Gate 1 writes `PLUGIN_PATH.txt`. If this block runs before that file exists, use the checkout `scripts/effort_ladder.py`.
 
-**PASS.** `gate4-detected-efforts.txt` is non-empty, has no `none`/`minimal`, and does not contain a token this session invented (`ultra` only if help or the rejection named it). `gate4-expected-tiers.txt` has `judgment:`, `instruction:`, `mechanical:` matching [`effort-ladder.md`](./skills/setup-pstack/references/effort-ladder.md).
+On grok 1.0.5 the live line is `use one of: xhigh, high, medium, low`. After orient, expected tiers are judgment `xhigh`, instruction `high`, mechanical `medium`.
 
-**FAIL.** The file lists `ultra` with no detection evidence, or includes `none`/`minimal`/`deep` as a pstack ladder token.
+**PASS.** `gate4-detected-efforts.txt` is non-empty, has no `none`/`minimal`/`deep`, and does not contain a token this session invented (`ultra` / `max` only if `use one of:` named them). `gate4-expected-tiers.txt` has `judgment:`, `instruction:`, `mechanical:` matching [`effort-ladder.md`](./skills/setup-pstack/references/effort-ladder.md).
+
+**FAIL.** The file lists `max` or `ultra` with no `use one of:` evidence, includes `none`/`minimal`/`deep` as a pstack ladder token, or was built from `Effort::VALID_VALUES` / `expected one of:` instead of the live CLI.
 
 Cursor panel slugs (FAIL tokens for 4a/4b and for any written toml). EDITH greps for these. Do not put them in the grok `-p` strings for 4a–4c:
 
@@ -456,7 +427,7 @@ claude-opus-5-thinking-xhigh
 
 ## Gate 4a. Accept-defaults (follow step 5)
 
-Instruct the session to follow `setup-pstack` **step 5** and accept the shipped defaults: `grok-4.6` for models, and the **computed** three-tier `[effort]` table from this session's detected enum ([`effort-ladder.md`](./skills/setup-pstack/references/effort-ladder.md), values in `gate4-expected-tiers.txt`). Do **not** tell it to write inherit-parent for every role as a shortcut. Do **not** tell it to copy a frozen medium/high/xhigh table.
+Instruct the session to follow `setup-pstack` **step 5** and accept the shipped defaults: `grok-4.6` for models, and the **computed** three-tier `[effort]` table from this session's live `use one of:` list ([`effort-ladder.md`](./skills/setup-pstack/references/effort-ladder.md), values in `gate4-expected-tiers.txt`). Do **not** tell it to write inherit-parent for every role as a shortcut. Do **not** tell it to copy `Effort::VALID_VALUES` or to write `max` unless the live CLI listed it.
 
 **Commands**
 
@@ -474,7 +445,7 @@ fi
 timeout 180s grok -p '/setup-pstack
 Follow step 5 in the skill. Accept the shipped defaults for models and for [effort].
 Write grok-4.6 in every model key if it is in the DETECTED list. Otherwise inherit-parent for models.
-Detect the live effort enum (grok --help / rejected invalid --reasoning-effort). Apply effort-ladder.md. Do not copy a frozen medium/high/xhigh table. Do not invent ultra.
+Detect the live effort enum from `use one of:` (grok --reasoning-effort not-a-real-effort). Apply effort-ladder.md. Do not use VALID_VALUES. Do not write max unless the live CLI listed it. Do not invent ultra.
 Write the computed [effort] table. Write ~/.grok/roles/<key>.toml for every real effort level.
 Do not copy a model table from another product or from memory.
 DETECTED:
@@ -593,9 +564,9 @@ fi
 
 Inspect `rawInput.model` on the feature spawn (null / missing vs a string).
 
-**PASS.** At least one `task` spawn ran, `subagent_type` is `feature` (or `pstack:feature` only if bare `feature` was unknown), `model` is `grok-4.6` or omitted (omit only if `task` rejected `grok-4.6`), `rawInput` has no `reasoning_effort` key, and the installed plugin's `agents/feature.md` frontmatter contains `effort: high` (ship-time mechanical tier from `effort_ladder.py` with the snapshot enum).
+**PASS.** At least one `task` spawn ran, `subagent_type` is `feature` (or `pstack:feature` only if bare `feature` was unknown), `model` is `grok-4.6` or omitted (omit only if `task` rejected `grok-4.6`), `rawInput` has no `reasoning_effort` key, and the installed plugin's `agents/feature.md` frontmatter contains `effort: medium` (ship-time mechanical tier from `effort_ladder.py` with the grok 1.0.5 usable set).
 
-**FAIL.** Live `task.model` is `grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`, `claude-fable-5-thinking-max`, `claude-opus-5-thinking-xhigh`, or any other slug not in the detected set. Or the spawn sent `reasoning_effort` on `task`. Or installed `agents/feature.md` lacks `effort: high`.
+**FAIL.** Live `task.model` is `grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`, `claude-fable-5-thinking-max`, `claude-opus-5-thinking-xhigh`, or any other slug not in the detected set. Or the spawn sent `reasoning_effort` on `task`. Or installed `agents/feature.md` lacks `effort: medium`. Or frontmatter is `max`.
 
 **Evidence to keep.** NDJSON, task-spawns JSONL, feature-effort grep, note that the toml was restored.
 
@@ -700,8 +671,8 @@ fi
 
 timeout 180s grok -p '/setup-pstack
 Keep every model key inherit-parent.
-Detect the live effort enum. Apply skills/setup-pstack/references/effort-ladder.md.
-Do not copy a frozen medium/high/xhigh table. Do not invent ultra.
+Detect the live effort enum from `use one of:` (not VALID_VALUES). Apply skills/setup-pstack/references/effort-ladder.md.
+Do not write max unless the live CLI listed it. Do not invent ultra.
 Write the computed three-tier [effort] split:
 highest for judgment/explainer/verifier/panels;
 highest-1 for bug-fix, perf-issue, hillclimb, reflect-tooling;
@@ -733,7 +704,7 @@ Compare overlays to `gate4-expected-tiers.txt` (`mechanical:`, `instruction:`, `
 
 **PASS.** `~/.grok/roles/feature.toml` `reasoning_effort` equals `mechanical:`. `~/.grok/roles/bug-fix.toml` equals `instruction:`. `~/.grok/roles/how-explainer.toml` and `~/.grok/roles/independent-verifier.toml` equal `judgment:`. No `task` call in this gate sent a `reasoning_effort` key. `gate4e-tui-leak` is not required if setup skipped `ask_user_question`; if it asked, the payload has no Cursor words (same grep as Gate 4a) and did not invent `ultra`.
 
-**FAIL.** Role files missing, wrong levels vs the computed ladder, a live `task` payload includes `reasoning_effort`, or setup wrote a handwritten medium/high/xhigh split that disagrees with `gate4-expected-tiers.txt`.
+**FAIL.** Role files missing, wrong levels vs the computed ladder, a live `task` payload includes `reasoning_effort`, setup wrote `max` when `use one of:` did not name it, or setup copied `Effort::VALID_VALUES` instead of the live CLI list.
 
 **CANNOT-PROVE (not PASS).** Headless hung on `ask_user_question` and TUI was not available.
 
@@ -1035,9 +1006,9 @@ Evidence dir:
 [ ] Gate 1 note  without --trust: exit 1, no TUI wait (or recorded CLI delta)
 [ ] Gate 2 PASS  poteto-mode, setup-pstack, how, unslop visible; 22 agents visible
 [ ] Gate 3 PASS  no live AskQuestion / TodoWrite / generalPurpose / environment cloud; installed skills have no Cursor panel slugs
-[ ] Gate 4 PASS  detected set from live task.model rejection (no Cursor panel fiction)
+[ ] Gate 4 PASS  detected slugs from live task.model rejection; effort from live `use one of:` (no reserved max unless listed)
 [ ] Gate 4a PASS accept-defaults / step 5; grok-4.6 + computed [effort] from live enum; feature.toml matches mechanical tier; TUI has no Cursor words
-[ ] Gate 4b PASS missing toml; feature spawn sends grok-4.6 (or omits if rejected); no task.reasoning_effort; agents/feature.md effort: high (ship-time mechanical)
+[ ] Gate 4b PASS missing toml; feature spawn sends grok-4.6 (or omits if rejected); no task.reasoning_effort; agents/feature.md effort: medium (ship-time mechanical)
 [ ] Gate 4c PASS independent-verifier set to a live slug (grok-4.5 when present); task accepts it
 [ ] Gate 4d PASS ~/.cursor/rules/pstack-models.mdc does not exist after setup
 [ ] Gate 4e PASS live effort ladder wrote ~/.grok/roles feature=mechanical bug-fix=instruction how-explainer=judgment independent-verifier=judgment; no task.reasoning_effort
