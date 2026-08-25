@@ -18,9 +18,11 @@ Run:
 /setup-pstack
 ```
 
-[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects slugs your `task` tool accepts, shows each role, and asks with `ask_user_question`. It writes `~/.grok/pstack-models.toml`.
+[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects slugs your `task` tool accepts, shows each role, and asks with `ask_user_question`. It writes **only** `~/.grok/pstack-models.toml`. It never writes a Cursor rules file.
 
-You only override what you care about. A missing key keeps the skill default. Run `/setup-pstack` again to change it.
+This repo is the Grok Build port. Official Cursor `/setup-pstack` (in Grok Bot or in Cursor) is a different plugin and still writes `~/.cursor/rules`.
+
+You only override what you care about. A missing key means omit `task.model`; the child inherits the parent. Run `/setup-pstack` again to change it.
 
 Set a role to `inherit-parent` or `auto` and pstack omits `task.model`, so the child inherits the parent. For a panel role the value is an array, and one `task` spawn runs per entry.
 
