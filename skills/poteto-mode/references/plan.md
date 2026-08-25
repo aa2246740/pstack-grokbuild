@@ -24,8 +24,8 @@ Resolve what is in scope vs explicitly out, technical or platform constraints, p
 
 Delegate codebase exploration (the **guard-the-context-window** principle skill).
 
-- Prefer `subagent_type: "poteto-agent"`. `general-purpose` is the fallback. Never use the built-in `plan` subagent_type; it ignores this skill.
-- Resolve `model` from `~/.grok/pstack-models.toml` per `skills/setup-pstack/references/resolve-model.md`. Absent file, missing key, `inherit-parent`, or `auto`: omit `model`.
+- Prefer `subagent_type: "poteto-agent"` for ad-hoc exploration with no role key. `general-purpose` is the fallback. Never use the built-in `plan` subagent_type; it ignores this skill.
+- Resolve `model` from `~/.grok/pstack-models.toml` per `skills/setup-pstack/references/resolve-model.md`. Absent file, missing key, `inherit-parent`, or `auto`: omit `model`. Do not send `reasoning_effort` on `task`.
 
 Each explorer returns file pointers, conventions, dependencies, test infrastructure, and entry points. No inlined dumps.
 

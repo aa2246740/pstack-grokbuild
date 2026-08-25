@@ -30,7 +30,7 @@ Skip Phase A only when the work is genuinely greenfield with no surrounding syst
 
 Run the **arena** skill with the design-sketch task and the Phase A grounding artifacts. Pass `references/runner-prompt.md` as each runner's prompt. Each candidate produces a design package shaped per `references/rationale-template.md`: the caller's usage written first, then the type sketch, function signatures, module map, and prose rationale derived from it.
 
-Use toml array `architect-runners` per `../setup-pstack/references/resolve-model.md`. If the file or key is absent, spawn **two** arena runners with `model` omitted (same parent model, two distinct sketches). That is exhaust-the-design-space, not a guessed multi-slug panel.
+Use toml array `architect-runners` per `../setup-pstack/references/resolve-model.md`. If the file or key is absent, spawn **two** arena runners with `model` omitted (same parent model, two distinct sketches). That is exhaust-the-design-space, not a guessed multi-slug panel. Each runner's `subagent_type` is `architect-runners` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md)). Do not send `reasoning_effort` on `task`.
 
 Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. This is the **exhaust-the-design-space** principle skill made concrete. Whole-shape alternatives, not point fixes inside one shape.
 

@@ -36,8 +36,8 @@ Write one clear paragraph. Reviewers challenge whether the work achieves the int
 Launch all reviewers in a single message using the `task` tool. Use toml array `interrogate-reviewers` per `../setup-pstack/references/resolve-model.md`, one reviewer per entry. If the file or key is absent, spawn **one** reviewer and omit `model`.
 
 For each reviewer:
-- `subagent_type`: `explore`
-- `model`: that array entry when it is a detected slug; omit when the entry is `inherit-parent`/`auto` or the key is missing
+- `subagent_type`: `interrogate-reviewers` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md))
+- `model`: that array entry when it is a detected slug; omit when the entry is `inherit-parent`/`auto` or the key is missing. Do not send `reasoning_effort` on `task`.
 
 If `task` rejects a slug, omit `model` or retry only with a slug the error text named that is already in this session's detected set. Do not pick a closest family equivalent. If the configured value is `inherit-parent` or `auto`, omit `model`; never treat those aliases as broken slugs.
 
