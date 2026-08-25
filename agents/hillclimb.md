@@ -1,7 +1,8 @@
 ---
 name: hillclimb
-description: pstack hillclimb writer. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/hillclimb.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack hillclimb writer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/hillclimb.toml.
 background: true
+effort: high
 ---
 
 # Hillclimb

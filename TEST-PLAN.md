@@ -25,7 +25,7 @@ The machine that wrote this plan (`cursor.com/agents/bc-01a0363c-5279-7a80-8c72-
 - `grok plugin install` / `enable` / `inspect`
 - skills appearing in a real session (`init.skills`, slash menu)
 - `/setup-pstack` writing only slugs that `task.model` accepts
-- accept-defaults (Gate 4a), missing-toml spawn (Gate 4b), live slug accept (Gate 4c), no Cursor mdc (Gate 4d), recommended effort split (Gate 4e)
+- accept-defaults (Gate 4a), missing-toml spawn (Gate 4b), live slug accept (Gate 4c), no Cursor mdc (Gate 4d), shipped effort split (Gate 4e)
 - `/poteto-mode` copying playbook steps into `todo_write` / `plan`
 - a parent `task` spawn of `independent-verifier` on a different `model`
 - `/loop` → `scheduler_create`
@@ -327,7 +327,7 @@ Re-run the live `toolName` extract on Gate 5, Gate 6, and Gate 7 streams. One Cu
 
 `InspectReport` (`inspect/mod.rs`) has **no models catalog**. Do not pretend inspect listed slugs if the JSON has no such field.
 
-Writing `inherit-parent` for every role is **necessary and not sufficient**. Gates 4a–4e are required. A session that only writes inherit-parent dodges the default table and does not prove accept-defaults, a missing-toml spawn, or the effort overlay.
+Writing `inherit-parent` for every role is **not** the shipped default. Gates 4a–4e are required. A session that only writes inherit-parent dodges the default table and does not prove accept-defaults, a missing-toml spawn, or the effort overlay.
 
 **Commands. Detect first, before setup.**
 
@@ -385,7 +385,7 @@ claude-opus-5-thinking-xhigh
 
 ## Gate 4a. Accept-defaults (follow step 5)
 
-Instruct the session to follow `setup-pstack` **step 5** and accept the example defaults. Do **not** tell it to write inherit-parent for every role as a shortcut. That dodge already passed Gate 4 once and hid the Cursor table.
+Instruct the session to follow `setup-pstack` **step 5** and accept the shipped defaults (`references/defaults.toml`: `grok-4.6` plus the `[effort]` table). Do **not** tell it to write inherit-parent for every role as a shortcut.
 
 **Commands**
 
@@ -396,13 +396,15 @@ fi
 
 # Preferred: TUI. ask_user_question can hang headless.
 #   /setup-pstack
-# Follow step 5. Accept the example defaults. Substitute a real slug only if
-# it is in gate4-detected-slugs.txt. Decline the verify-* skill offer.
+# Follow step 5. Accept the shipped defaults. Substitute inherit-parent for
+# grok-4.6 only if grok-4.6 is not in gate4-detected-slugs.txt.
+# Decline the verify-* skill offer.
 
 timeout 180s grok -p '/setup-pstack
-Follow step 5 in the skill. Accept the example defaults for models and for [effort].
-Write only slugs from the DETECTED list below, or inherit-parent, or auto.
-Effort values in the example are inherit-parent. Do not write ~/.grok/roles/*.toml for inherit-parent.
+Follow step 5 in the skill. Accept the shipped defaults for models and for [effort].
+Write grok-4.6 in every model key if it is in the DETECTED list. Otherwise inherit-parent for models.
+Write the [effort] table from references/defaults.toml (low / high / xhigh per role).
+Write ~/.grok/roles/<key>.toml for every real effort level.
 Do not copy a model table from another product or from memory.
 DETECTED:
 '"$(cat "$EVIDENCE/gate4-detected-slugs.txt")"'
@@ -436,7 +438,7 @@ if [ -s "$EVIDENCE/gate4a-ask.jsonl" ]; then
 fi
 ```
 
-TUI / `ask_user_question` **FAIL** if `gate4a-tui-leak.txt` is non-empty, or if any option is a mixed/port mapping. Model options must be inherit-parent everywhere, one detected slug everywhere, and/or customize per role. Effort options must be inherit-parent everywhere, recommended split, xhigh everywhere, and/or customize per role (levels `low` `medium` `high` `xhigh` `max`). No Cursor words in the question the human saw.
+TUI / `ask_user_question` **FAIL** if `gate4a-tui-leak.txt` is non-empty, or if any option is a mixed/port mapping. Model options must be shipped-default `grok-4.6` everywhere (when detected), inherit-parent everywhere, one other detected slug everywhere, and/or customize per role. Effort options must be shipped default (the low/high/xhigh split), inherit-parent everywhere, xhigh everywhere, and/or customize per role (levels `low` `medium` `high` `xhigh` `max`). No Cursor words in the question the human saw.
 
 ```bash
 grep -oE '"[^"]+"' "$EVIDENCE/gate4a-pstack-models.toml" \
@@ -459,9 +461,9 @@ done < "$EVIDENCE/gate4a-written-slugs.txt" \
   | tee "$EVIDENCE/gate4a-undetected.txt"
 ```
 
-**PASS.** `~/.grok/pstack-models.toml` exists. `gate4a-cursor-slugs.txt` is empty. `gate4a-undetected.txt` is empty. Every real slug is in the detected set. `gate4a-tui-leak.txt` is empty (no Cursor / mixed-panel / mdc path in the question the human saw). Accept-defaults does **not** write `reasoning_effort` into `~/.grok/roles/feature.toml`.
+**PASS.** `~/.grok/pstack-models.toml` exists. `gate4a-cursor-slugs.txt` is empty. `gate4a-undetected.txt` is empty. Every real slug is in the detected set. If `grok-4.6` was detected, model keys are `grok-4.6` (panel keys are one-entry arrays). `[effort].feature` is `low`, `[effort].bug-fix` is `high`, `[effort].how-explainer` is `xhigh`. `~/.grok/roles/feature.toml` contains `reasoning_effort = "low"`. `gate4a-tui-leak.txt` is empty (no Cursor / mixed-panel / mdc path in the question the human saw).
 
-**FAIL.** The file is missing, or it contains any of the four Cursor panel slugs, or any other unconfirmed slug, or `ask_user_question` offered a mixed/port option or named `~/.cursor/rules`.
+**FAIL.** The file is missing, or it contains any of the four Cursor panel slugs, or any other unconfirmed slug, or `ask_user_question` offered a mixed/port option or named `~/.cursor/rules`, or shipped `[effort]` / `~/.grok/roles/feature.toml` is missing after accept-defaults.
 
 **CANNOT-PROVE (not PASS).** Headless hung on `ask_user_question` (exit 124) and TUI was not available. Retry in TUI.
 
@@ -471,7 +473,7 @@ done < "$EVIDENCE/gate4a-written-slugs.txt" \
 
 ## Gate 4b. Missing toml (feature default spawn)
 
-Hide `~/.grok/pstack-models.toml`. Run a parent spawn that would use the **feature** role default. Restore the file afterward.
+Hide `~/.grok/pstack-models.toml` and `~/.grok/roles`. Run a parent spawn that would use the **feature** role default. Restore afterward. This is the out-of-box path: no setup.
 
 **Commands**
 
@@ -503,6 +505,9 @@ jq -c 'select(.type=="tool_call" and (.toolName=="task" or .toolName=="Task" or 
   "$EVIDENCE/gate4b.ndjson" \
   | tee "$EVIDENCE/gate4b-task-spawns.jsonl"
 
+export PLUGIN_PATH="$(cat "$EVIDENCE/PLUGIN_PATH.txt")"
+rg -n '^effort:' "$PLUGIN_PATH/agents/feature.md" | tee "$EVIDENCE/gate4b-feature-effort.txt"
+
 # Restore before later gates.
 if [ -f "$EVIDENCE/gate4b-hidden.toml" ]; then
   mv "$EVIDENCE/gate4b-hidden.toml" "$HOME/.grok/pstack-models.toml"
@@ -514,11 +519,11 @@ fi
 
 Inspect `rawInput.model` on the feature spawn (null / missing vs a string).
 
-**PASS.** At least one `task` spawn ran, `subagent_type` is `feature` (or `pstack:feature` only if bare `feature` was unknown), `model` is omitted or a slug in `gate4-detected-slugs.txt`, and `rawInput` has no `reasoning_effort` key.
+**PASS.** At least one `task` spawn ran, `subagent_type` is `feature` (or `pstack:feature` only if bare `feature` was unknown), `model` is `grok-4.6` or omitted (omit only if `task` rejected `grok-4.6`), `rawInput` has no `reasoning_effort` key, and the installed plugin's `agents/feature.md` frontmatter contains `effort: low`.
 
-**FAIL.** Live `task.model` is `grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`, `claude-fable-5-thinking-max`, `claude-opus-5-thinking-xhigh`, or any other slug not in the detected set. Or the spawn sent `reasoning_effort` on `task`.
+**FAIL.** Live `task.model` is `grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`, `claude-fable-5-thinking-max`, `claude-opus-5-thinking-xhigh`, or any other slug not in the detected set. Or the spawn sent `reasoning_effort` on `task`. Or installed `agents/feature.md` lacks `effort: low`.
 
-**Evidence to keep.** NDJSON, task-spawns JSONL, note that the toml was restored.
+**Evidence to keep.** NDJSON, task-spawns JSONL, feature-effort grep, note that the toml was restored.
 
 ---
 
@@ -621,7 +626,10 @@ fi
 
 timeout 180s grok -p '/setup-pstack
 Keep every model key inherit-parent.
-Write the recommended effort split from Ask the human: low for mechanical and swarm workers, xhigh for judgment / how-explainer / independent-verifier, inherit-parent for the rest.
+Write the shipped effort split from Ask the human / references/defaults.toml:
+low for feature, refactoring, how-explorer, why-investigators, swarm-workers;
+high for bug-fix, perf-issue, hillclimb, reflect-tooling;
+xhigh for judgment-and-prose, hardest-tasks, how-explainer, why-synthesizer, reflect-judgment, independent-verifier, how-critics, arena-runners, arena-cross-judge-pool, architect-runners, interrogate-reviewers.
 If you would call ask_user_question, skip it and write that split now.
 Decline creating .grok/skills/verify-*. Stop after the toml and ~/.grok/roles files are written.
 Do not send reasoning_effort on any task call.' \
@@ -633,7 +641,7 @@ echo $? | tee "$EVIDENCE/gate4e-setup.exit"
 cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4e-pstack-models.toml"
 cat "$EVIDENCE/gate4e-pstack-models.toml"
 ls -la "$HOME/.grok/roles" | tee "$EVIDENCE/gate4e-roles.ls"
-for key in feature how-explainer independent-verifier; do
+for key in feature bug-fix how-explainer independent-verifier; do
   echo "===== $key ====="
   cat "$HOME/.grok/roles/${key}.toml" 2>&1 || true
 done | tee "$EVIDENCE/gate4e-role-files.txt"
@@ -644,7 +652,7 @@ jq -c 'select(.type=="tool_call" and (.toolName=="task" or .toolName=="Task" or 
   | tee "$EVIDENCE/gate4e-task-spawns.jsonl"
 ```
 
-**PASS.** `~/.grok/roles/feature.toml` contains `reasoning_effort = "low"`. `~/.grok/roles/how-explainer.toml` and `~/.grok/roles/independent-verifier.toml` contain `reasoning_effort = "xhigh"`. No `task` call in this gate sent a `reasoning_effort` key. `gate4e-tui-leak` is not required if setup skipped `ask_user_question`; if it asked, the payload has no Cursor words (same grep as Gate 4a).
+**PASS.** `~/.grok/roles/feature.toml` contains `reasoning_effort = "low"`. `~/.grok/roles/bug-fix.toml` contains `reasoning_effort = "high"`. `~/.grok/roles/how-explainer.toml` and `~/.grok/roles/independent-verifier.toml` contain `reasoning_effort = "xhigh"`. No `task` call in this gate sent a `reasoning_effort` key. `gate4e-tui-leak` is not required if setup skipped `ask_user_question`; if it asked, the payload has no Cursor words (same grep as Gate 4a).
 
 **FAIL.** Role files missing, wrong levels, or a live `task` payload includes `reasoning_effort`.
 
@@ -949,11 +957,11 @@ Evidence dir:
 [ ] Gate 2 PASS  poteto-mode, setup-pstack, how, unslop visible; 22 agents visible
 [ ] Gate 3 PASS  no live AskQuestion / TodoWrite / generalPurpose / environment cloud; installed skills have no Cursor panel slugs
 [ ] Gate 4 PASS  detected set from live task.model rejection (no Cursor panel fiction)
-[ ] Gate 4a PASS accept-defaults / step 5; toml has none of the four Cursor slugs; TUI has no Cursor words; inherit effort writes no role overlay
-[ ] Gate 4b PASS missing toml; feature spawn omits model and does not send reasoning_effort
+[ ] Gate 4a PASS accept-defaults / step 5; grok-4.6 + shipped [effort]; feature.toml reasoning_effort=low; TUI has no Cursor words
+[ ] Gate 4b PASS missing toml; feature spawn sends grok-4.6 (or omits if rejected); no task.reasoning_effort; agents/feature.md effort: low
 [ ] Gate 4c PASS independent-verifier set to a live slug (grok-4.5 when present); task accepts it
 [ ] Gate 4d PASS ~/.cursor/rules/pstack-models.mdc does not exist after setup
-[ ] Gate 4e PASS recommended effort split wrote ~/.grok/roles feature=low how-explainer=xhigh independent-verifier=xhigh; no task.reasoning_effort
+[ ] Gate 4e PASS shipped effort split wrote ~/.grok/roles feature=low bug-fix=high how-explainer=xhigh independent-verifier=xhigh; no task.reasoning_effort
 [ ] Gate 5 PASS  /poteto-mode matched Investigation; Principles first; steps copied to todos
 [ ] Gate 6 PASS  Feature on /tmp/pstack-edith-lab; both python commands + exact stdout in-session
 [ ] Gate 7 PASS  parent task independent-verifier + different model + child command evidence

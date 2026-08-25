@@ -122,6 +122,7 @@ def main() -> None:
         "agents/feature.md",
         "agents/how-explainer.md",
         "skills/setup-pstack/references/resolve-effort.md",
+        "skills/setup-pstack/references/defaults.toml",
         "HARNESS.md",
     ):
         if not (ROOT / required).is_file():
@@ -140,6 +141,8 @@ def main() -> None:
         "select_role",
         "SubagentRole",
         "reasoning_effort",
+        "apply_definition_runtime_defaults",
+        "AgentDefinition",
     ):
         if token not in harness:
             fail(f"HARNESS.md missing {token}")
@@ -175,29 +178,29 @@ def main() -> None:
             + "\n  ".join(slug_hits)
         )
 
-    role_keys = (
-        "feature",
-        "refactoring",
-        "bug-fix",
-        "perf-issue",
-        "hillclimb",
-        "judgment-and-prose",
-        "hardest-tasks",
-        "how-explorer",
-        "how-explainer",
-        "how-critics",
-        "why-investigators",
-        "why-synthesizer",
-        "reflect-tooling",
-        "reflect-judgment",
-        "arena-runners",
-        "arena-cross-judge-pool",
-        "swarm-workers",
-        "architect-runners",
-        "interrogate-reviewers",
-        "independent-verifier",
-    )
-    for key in role_keys:
+    role_effort = {
+        "feature": "low",
+        "refactoring": "low",
+        "how-explorer": "low",
+        "why-investigators": "low",
+        "swarm-workers": "low",
+        "bug-fix": "high",
+        "perf-issue": "high",
+        "hillclimb": "high",
+        "reflect-tooling": "high",
+        "judgment-and-prose": "xhigh",
+        "hardest-tasks": "xhigh",
+        "how-explainer": "xhigh",
+        "why-synthesizer": "xhigh",
+        "reflect-judgment": "xhigh",
+        "independent-verifier": "xhigh",
+        "how-critics": "xhigh",
+        "arena-runners": "xhigh",
+        "arena-cross-judge-pool": "xhigh",
+        "architect-runners": "xhigh",
+        "interrogate-reviewers": "xhigh",
+    }
+    for key, level in role_effort.items():
         path = ROOT / "agents" / f"{key}.md"
         if not path.is_file():
             fail(f"missing role agent agents/{key}.md")
@@ -205,11 +208,26 @@ def main() -> None:
         fm = text.split("---", 2)
         if len(fm) < 3:
             fail(f"{path.relative_to(ROOT)}: missing frontmatter")
-        if re.search(r"(?m)^effort\s*:", fm[1]):
+        match = re.search(r"(?m)^effort\s*:\s*(\S+)", fm[1])
+        if not match:
+            fail(f"{path.relative_to(ROOT)}: missing frontmatter effort (out-of-box default)")
+        if match.group(1) != level:
             fail(
-                f"{path.relative_to(ROOT)}: frontmatter effort would block inherit-parent; "
-                "overlay lives in ~/.grok/roles/"
+                f"{path.relative_to(ROOT)}: frontmatter effort {match.group(1)!r}, expected {level!r}"
             )
+
+    defaults = (ROOT / "skills" / "setup-pstack" / "references" / "defaults.toml").read_text(
+        encoding="utf-8"
+    )
+    if 'feature = "grok-4.6"' not in defaults:
+        fail("defaults.toml must ship grok-4.6 as the feature model")
+    if 'feature = "low"' not in defaults or 'bug-fix = "high"' not in defaults:
+        fail("defaults.toml [effort] must match the shipped split")
+    if 'independent-verifier = "xhigh"' not in defaults:
+        fail("defaults.toml [effort] independent-verifier must be xhigh")
+    for slug in CURSOR_MODEL_SLUGS:
+        if slug in defaults:
+            fail(f"defaults.toml contains Cursor panel slug {slug}")
 
     agent_files = list((ROOT / "agents").glob("*.md"))
     if len(agent_files) != 22:

@@ -1,7 +1,8 @@
 ---
 name: reflect-tooling
-description: pstack reflect tooling reviewer. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/reflect-tooling.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack reflect tooling reviewer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/reflect-tooling.toml.
 background: true
+effort: high
 ---
 
 # Reflect Tooling

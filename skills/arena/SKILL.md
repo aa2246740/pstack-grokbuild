@@ -25,7 +25,7 @@ The N candidates will receive the same prompt, so the prompt is the contract. Ge
 
 1. State the artifact each candidate is producing.
 2. Derive the rubric. State what success looks like for *this* task, then turn it into 3-6 concrete gradeable criteria. Concrete: `Adds a --dry-run flag that skips writes`. Vague: `code is correct`. The rubric is the picker's tool in Phase D; candidates only see the task.
-3. Pick the runners from toml array `arena-runners` per `../setup-pstack/references/resolve-model.md`. If the file or key is absent, spawn **one** runner and omit `model`. Spawn more only when the toml lists more detected slugs, or when the arena covers multiple design directions on the **same** omitted-or-named slug. Same model N times when the work is generation-bound rather than judgment-sensitive.
+3. Pick the runners from toml array `arena-runners` per `../setup-pstack/references/resolve-model.md`. If the file or key is absent, spawn **one** runner and send `grok-4.6` (omit if rejected). Spawn more only when the toml lists more detected slugs, or when the arena covers multiple design directions on the **same** named-or-omitted slug. Same model N times when the work is generation-bound rather than judgment-sensitive.
 4. Assign output paths. Each candidate writes to its own location (a git worktree where possible, otherwise `/tmp/arena-<slug>/candidate-<n>/`). N candidates writing to the same path is shared mutable state and fails the the **separate-before-serializing-shared-state** principle skill test.
 
 ## Phase B: Fan out
@@ -38,7 +38,7 @@ If a candidate fails to produce output, proceed with N-1 and note the dropout in
 
 ## Phase C: Cross-judge
 
-After all Phase B candidates complete, choose one model from toml array `arena-cross-judge-pool` per `../setup-pstack/references/resolve-model.md`. If the file or key is absent, spawn **one** judge and omit `model`. Prefer a pool entry whose family differs from the parent when the toml names more than one detected slug. Spawn one `task` judge with `subagent_type: "arena-cross-judge-pool"` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md)). Do not send `reasoning_effort` on `task`. It sees the rubric and the candidates by path label, scores each criterion, and recommends a base with rationale. It runs in parallel with the parent's reading in Phase D, not with the candidates themselves. Spawning while candidates are still writing means the judge sees partial or empty outputs and reports them as dropouts.
+After all Phase B candidates complete, choose one model from toml array `arena-cross-judge-pool` per `../setup-pstack/references/resolve-model.md`. If the file or key is absent, spawn **one** judge and send `grok-4.6` (omit if rejected). Prefer a pool entry whose family differs from the parent when the toml names more than one detected slug. Spawn one `task` judge with `subagent_type: "arena-cross-judge-pool"` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md)). Do not send `reasoning_effort` on `task`. It sees the rubric and the candidates by path label, scores each criterion, and recommends a base with rationale. It runs in parallel with the parent's reading in Phase D, not with the candidates themselves. Spawning while candidates are still writing means the judge sees partial or empty outputs and reports them as dropouts.
 
 ## Phase D: Pick a base
 
