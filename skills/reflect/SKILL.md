@@ -42,13 +42,13 @@ One message, three `task` calls. Judgment and divergent lenses use `subagent_typ
 | Tooling | `reflect-tooling` | `references/tooling-reviewer.md` |
 | Divergent | `reflect-judgment` | `references/divergent-reviewer.md` |
 
-Omit `model` on a spawn when that key is missing, `inherit-parent`, or `auto`. Three lenses are three prompts, not a guessed multi-slug panel.
+Omit `model` on a spawn when that key is `inherit-parent` or `auto`. File absent: send `grok-4.6` (omit if rejected). Three lenses are three prompts, not a guessed multi-slug panel.
 
 Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings in the `task` response body.
 
 ### 3. Synthesize
 
-One `task` call, `subagent_type: "reflect-judgment"`, toml key `reflect-judgment` (omit `model` if missing/`inherit-parent`/`auto`). Do not send `reasoning_effort` on `task`. The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
+One `task` call, `subagent_type: "reflect-judgment"`, toml key `reflect-judgment` (no toml: `grok-4.6`; inherit-parent/`auto`/missing key: omit `model`). Do not send `reasoning_effort` on `task`. The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
 
 ### 4. Structural enforcement check
 
