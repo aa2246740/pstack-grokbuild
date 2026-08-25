@@ -25,6 +25,7 @@ The machine that wrote this plan (`cursor.com/agents/bc-01a0363c-5279-7a80-8c72-
 - `grok plugin install` / `enable` / `inspect`
 - skills appearing in a real session (`init.skills`, slash menu)
 - `/setup-pstack` writing only slugs that `task.model` accepts
+- accept-defaults (Gate 4a), missing-toml spawn (Gate 4b), live slug accept (Gate 4c), no Cursor mdc (Gate 4d)
 - `/poteto-mode` copying playbook steps into `todo_write` / `plan`
 - a parent `task` spawn of `independent-verifier` on a different `model`
 - `/loop` → `scheduler_create`
@@ -272,10 +273,13 @@ Static grep of the **installed** plugin path (not this Cloud Agent workspace) pl
 export PLUGIN_PATH="$(cat "$EVIDENCE/PLUGIN_PATH.txt")"
 
 # Disk. HARNESS.md may mention Cursor names as negatives. Exclude it.
+# TEST-PLAN.md may name Cursor panel slugs as FAIL tokens. skills/ may not.
 rg -n --hidden \
   -g '!HARNESS.md' -g '!UPSTREAM' -g '!TEST-PLAN.md' -g '!scripts/**' -g '!automations/**' \
   -e 'AskQuestion' -e 'TodoWrite' -e 'generalPurpose' -e 'allow_multiple' \
   -e 'environment:\s*"cloud"' -e "environment:\s*'cloud'" \
+  -e 'grok-4.6-fast-xhigh' -e 'gpt-5.6-sol-max' \
+  -e 'claude-fable-5-thinking-max' -e 'claude-opus-5-thinking-xhigh' \
   "$PLUGIN_PATH" \
   | tee "$EVIDENCE/gate3-rg-installed.txt"
 
@@ -303,9 +307,9 @@ Forbidden **live** `task` / `Task` / `spawn_subagent` `rawInput` keys/values:
 
 Allowed live ids include `task`, `Task`, `spawn_subagent` (aliases), `todo_write`, `ask_user_question`, `get_task_output`, `run_terminal_cmd`, `read_file`, `grep`, `scheduler_create`. Canonical spawn id is `task`.
 
-**PASS.** Installed plugin tree (excluding HARNESS.md / scripts / benny) has no forbidden Cursor call-site identifiers, and the live `toolName` list contains none of `AskQuestion` / `TodoWrite`.
+**PASS.** Installed plugin tree (excluding HARNESS.md / scripts / benny / TEST-PLAN.md) has no forbidden Cursor call-site identifiers, no Cursor panel slugs in skill fallbacks, and the live `toolName` list contains none of `AskQuestion` / `TodoWrite`.
 
-**FAIL.** A live call uses a Cursor tool id, or a live `task` payload includes `environment: "cloud"`, `capability_mode`, `reasoning_effort`, or `generalPurpose`.
+**FAIL.** A live call uses a Cursor tool id, a live `task` payload includes `environment: "cloud"`, `capability_mode`, `reasoning_effort`, or `generalPurpose`, or `gate3-rg-installed.txt` is non-empty (Cursor call-site ids or Cursor panel slugs in the installed tree).
 
 **Evidence to keep.** `gate3-rg-installed.txt` (empty is success), `gate3-toolNames.txt`, `gate3-tool-calls.jsonl`, `gate3-live.ndjson`.
 
@@ -313,23 +317,25 @@ Re-run the live `toolName` extract on Gate 5, Gate 6, and Gate 7 streams. One Cu
 
 ---
 
-## Gate 4. `/setup-pstack` writes only detected slugs
+## Gate 4. Detect live `task.model` slugs
 
-`setup-pstack/SKILL.md` step 1. Enumerate slugs the `task` tool accepts in `model` this session. Prefer `grok inspect --json` if it lists models. A rejected `task.model` error that names valid slugs is also evidence. Never write a slug you have not confirmed. `inherit-parent` and `auto` are always valid and are not slugs. Omit `model` on `task` so the child inherits.
+`setup-pstack/SKILL.md` step 1. Enumerate slugs the `task` tool accepts in `model` this session. Prefer a rejected `task.model` error that names valid slugs. Use `grok models` if the CLI exposes it. Use `grok inspect --json` only if that JSON actually lists models. Never write a slug you have not confirmed. `inherit-parent` and `auto` are always valid and are not slugs. Omit `model` on `task` so the child inherits.
 
 `InspectReport` (`inspect/mod.rs`) has **no models catalog**. Do not pretend inspect listed slugs if the JSON has no such field.
+
+Writing `inherit-parent` for every role is **necessary and not sufficient**. Gates 4a–4d are required. A session that only writes inherit-parent dodges the default table and does not prove accept-defaults or a missing-toml spawn.
 
 **Commands. Detect first, before setup.**
 
 ```bash
-# 4a. Inspect has no model list. Prove that.
+# Inspect has no model list. Prove that.
 jq 'keys' "$EVIDENCE/gate1-inspect.json" | tee "$EVIDENCE/gate4-inspect-keys.json"
 jq 'has("models")' "$EVIDENCE/gate1-inspect.json" | tee "$EVIDENCE/gate4-inspect-has-models.txt"
 
-# 4b. Parent model is available (Gate 0 already used -m grok-4.6). Record it.
+# Parent model is available (Gate 0 already used -m grok-4.6). Record it.
 echo "$GROK_MODEL" | tee "$EVIDENCE/gate4-detected-slugs.txt"
 
-# 4c. Rejected slug. Capture the validator's list of valid slugs if the error names them.
+# Rejected slug. Capture the validator's list of valid slugs if the error names them.
 grok -p 'Call the task tool exactly once with these fields and then stop:
 prompt: Reply pong and stop. Do not edit files.
 description: slug probe
@@ -352,68 +358,220 @@ Build the detected set. Union of:
 2. `$GROK_MODEL` (`grok-4.6`) because Gate 0 used it successfully.
 3. Any slug that inspect actually listed (unexpected; keep it if present).
 
-Write the set one slug per line to `$EVIDENCE/gate4-detected-slugs.txt`. If the rejection text does **not** name other slugs, the detected set is **only** `grok-4.6`. Do not add `grok-4.6-fast-xhigh`, `claude-fable-5-thinking-max`, `gpt-5.6-sol-max`, or `claude-opus-5-thinking-xhigh` because they appear in the skill's default TOML.
+Write the set one slug per line to `$EVIDENCE/gate4-detected-slugs.txt`. If the rejection text does **not** name other slugs, the detected set is **only** `grok-4.6`. Do not add `grok-4.6-fast-xhigh`, `claude-fable-5-thinking-max`, `gpt-5.6-sol-max`, or `claude-opus-5-thinking-xhigh`. Those are Cursor panel slugs. They are not live on this box. They must not appear in skill fallbacks or in the written toml.
 
-**Commands. Backup, then run setup.**
+On EDITH's Linux Grok Build the live set has been `grok-4.5` and `grok-4.6`. Record whatever this binary actually accepts.
+
+**PASS.** `gate4-detected-slugs.txt` is non-empty and contains only slugs this session confirmed.
+
+**FAIL.** The probe was skipped, or the detected set includes a Cursor panel slug that the probe never named.
+
+**Evidence to keep.** Inspect keys, probe NDJSON, detected-slugs file.
+
+Cursor panel slugs (FAIL tokens for 4a/4b and for any written toml). EDITH greps for these. Do not put them in the grok `-p` strings for 4a–4c:
+
+```text
+grok-4.6-fast-xhigh
+gpt-5.6-sol-max
+claude-fable-5-thinking-max
+claude-opus-5-thinking-xhigh
+```
+
+---
+
+## Gate 4a. Accept-defaults (follow step 5)
+
+Instruct the session to follow `setup-pstack` **step 5** and accept the example defaults. Do **not** tell it to write inherit-parent for every role as a shortcut. That dodge already passed Gate 4 once and hid the Cursor table.
+
+**Commands**
 
 ```bash
 if [ -f "$HOME/.grok/pstack-models.toml" ]; then
-  cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4-pstack-models.toml.pre"
+  cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4a-pstack-models.toml.pre"
 fi
 
 # Preferred: TUI. ask_user_question can hang headless.
-# In a real grok TUI on this box:
 #   /setup-pstack
-# Answer every role with a detected slug, or inherit-parent / auto.
-# Decline the verify-* skill offer (Gate 6 uses a tiny folder, not an app harness).
+# Follow step 5. Accept the example defaults. Substitute a real slug only if
+# it is in gate4-detected-slugs.txt. Decline the verify-* skill offer.
 
-# Headless fallback if TUI is unavailable. timeout so a hung ask_user_question cannot eat the night.
 timeout 180s grok -p '/setup-pstack
-Detected slugs for this machine are listed here. Use only these, or inherit-parent, or auto.
-Do not write any other real slug.
+Follow step 5 in the skill. Accept the example defaults.
+Write only slugs from the DETECTED list below, or inherit-parent, or auto.
+Do not copy a model table from another product or from memory.
 DETECTED:
 '"$(cat "$EVIDENCE/gate4-detected-slugs.txt")"'
-If you would call ask_user_question, do not. Write ~/.grok/pstack-models.toml now with inherit-parent for every role (or the single detected slug). Decline creating .grok/skills/verify-*. Stop after the file is written and print the file path.' \
+If you would call ask_user_question, skip it and write the file from step 5 now.
+Decline creating .grok/skills/verify-*. Stop after ~/.grok/pstack-models.toml is written and print the path.
+Write no other models file.' \
   "${GROK_BASE[@]}" "${GROK_STREAM[@]}" \
   --max-turns 20 \
-  2>"$EVIDENCE/gate4-setup.err" | tee "$EVIDENCE/gate4-setup.ndjson"
-echo $? | tee "$EVIDENCE/gate4-setup.exit"
+  2>"$EVIDENCE/gate4a-setup.err" | tee "$EVIDENCE/gate4a-setup.ndjson"
+echo $? | tee "$EVIDENCE/gate4a-setup.exit"
+
+cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4a-pstack-models.toml"
+cat "$EVIDENCE/gate4a-pstack-models.toml"
 ```
 
-If the TUI was used, copy the session transcript or a screenshot plus the resulting file. Headless NDJSON is enough when it actually wrote the file.
+If the TUI was used, copy the transcript or a screenshot plus the resulting file.
 
 ```bash
-cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4-pstack-models.toml"
-cat "$EVIDENCE/gate4-pstack-models.toml"
-```
-
-**Validate the file by hand**
-
-Every **real slug** (not `inherit-parent`, not `auto`, not comments) in the TOML must appear in `$EVIDENCE/gate4-detected-slugs.txt`.
-
-```bash
-# Extract quoted strings that look like model slugs. Review the list; do not treat this as a parser.
-grep -oE '"[^"]+"' "$EVIDENCE/gate4-pstack-models.toml" \
+grep -oE '"[^"]+"' "$EVIDENCE/gate4a-pstack-models.toml" \
   | tr -d '"' \
   | grep -vE '^(inherit-parent|auto)$' \
   | sort -u \
-  | tee "$EVIDENCE/gate4-written-slugs.txt"
+  | tee "$EVIDENCE/gate4a-written-slugs.txt"
 
-# Each written slug must be in the detected set.
+: > "$EVIDENCE/gate4a-cursor-slugs.txt"
+for slug in grok-4.6-fast-xhigh gpt-5.6-sol-max claude-fable-5-thinking-max claude-opus-5-thinking-xhigh; do
+  grep -F "$slug" "$EVIDENCE/gate4a-pstack-models.toml" \
+    && echo "$slug" >> "$EVIDENCE/gate4a-cursor-slugs.txt"
+done
+
+: > "$EVIDENCE/gate4a-undetected.txt"
 while read -r slug; do
   grep -Fxq "$slug" "$EVIDENCE/gate4-detected-slugs.txt" \
     || echo "UNDETECTED: $slug"
-done < "$EVIDENCE/gate4-written-slugs.txt" \
-  | tee "$EVIDENCE/gate4-undetected.txt"
+done < "$EVIDENCE/gate4a-written-slugs.txt" \
+  | tee "$EVIDENCE/gate4a-undetected.txt"
 ```
 
-**PASS.** `~/.grok/pstack-models.toml` exists after `/setup-pstack`, and every real slug in it is in the detected set. `gate4-undetected.txt` is empty.
+**PASS.** `~/.grok/pstack-models.toml` exists. `gate4a-cursor-slugs.txt` is empty. `gate4a-undetected.txt` is empty. Every real slug is in the detected set.
 
-**FAIL.** The file is missing, or it contains a default-panel slug that was never confirmed (`claude-fable-5-thinking-max`, `gpt-5.6-sol-max`, `grok-4.6-fast-xhigh`, `claude-opus-5-thinking-xhigh`, or any other unconfirmed slug).
+**FAIL.** The file is missing, or it contains any of the four Cursor panel slugs, or any other unconfirmed slug.
 
-**CANNOT-PROVE (not PASS).** Headless hung on `ask_user_question` (exit 124) and TUI was not available. Retry in TUI. Do not mark PASS from the hung run.
+**CANNOT-PROVE (not PASS).** Headless hung on `ask_user_question` (exit 124) and TUI was not available. Retry in TUI.
 
-**Evidence to keep.** Detected-slugs file, probe NDJSON, setup NDJSON or TUI notes, pre/post TOML, written-slugs, undetected (empty).
+**Evidence to keep.** Setup NDJSON or TUI notes, toml, cursor-slugs (empty), undetected (empty).
+
+---
+
+## Gate 4b. Missing toml (feature default spawn)
+
+Hide `~/.grok/pstack-models.toml`. Run a parent spawn that would use the **feature** role default. Restore the file afterward.
+
+**Commands**
+
+```bash
+mkdir -p "$HOME/.grok"
+if [ -f "$HOME/.grok/pstack-models.toml" ]; then
+  mv "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4b-hidden.toml"
+fi
+test ! -f "$HOME/.grok/pstack-models.toml"
+
+timeout 180s grok -p 'From this parent session, call the task tool exactly once.
+subagent_type: poteto-agent
+description: feature default probe
+run_in_background: true
+prompt: Reply with exactly the word pong and stop. Do not edit files.
+Resolve model the way the Feature playbook does for the feature role.
+Then stop. Do not retry a rejected slug.' \
+  "${GROK_BASE[@]}" "${GROK_STREAM[@]}" \
+  --max-turns 12 \
+  2>"$EVIDENCE/gate4b.err" | tee "$EVIDENCE/gate4b.ndjson"
+echo $? | tee "$EVIDENCE/gate4b.exit"
+
+jq -c 'select(.type=="tool_call" and (.toolName=="task" or .toolName=="Task" or .toolName=="spawn_subagent"))
+       | {toolName, model: .rawInput.model, rawInput}' \
+  "$EVIDENCE/gate4b.ndjson" \
+  | tee "$EVIDENCE/gate4b-task-spawns.jsonl"
+
+# Restore before later gates.
+if [ -f "$EVIDENCE/gate4b-hidden.toml" ]; then
+  mv "$EVIDENCE/gate4b-hidden.toml" "$HOME/.grok/pstack-models.toml"
+fi
+```
+
+Inspect `rawInput.model` on the feature spawn (null / missing vs a string).
+
+**PASS.** At least one `task` spawn ran, and its `model` is either omitted or a slug in `gate4-detected-slugs.txt`.
+
+**FAIL.** Live `task.model` is `grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`, `claude-fable-5-thinking-max`, `claude-opus-5-thinking-xhigh`, or any other slug not in the detected set.
+
+**Evidence to keep.** NDJSON, task-spawns JSONL, note that the toml was restored.
+
+---
+
+## Gate 4c. Real detected slug is accepted
+
+Set `independent-verifier` to a confirmed live slug and prove `task` accepts it. Prefer a slug **≠** `$GROK_MODEL`. On EDITH's box that is `grok-4.5` when the probe named it. If the detected set is only `$GROK_MODEL`, use that slug.
+
+**Commands**
+
+```bash
+OTHER="$(grep -vx "$GROK_MODEL" "$EVIDENCE/gate4-detected-slugs.txt" | head -n1)"
+if [ -z "$OTHER" ]; then
+  OTHER="$GROK_MODEL"
+fi
+echo "OTHER=$OTHER" | tee "$EVIDENCE/gate4c-slug.txt"
+
+mkdir -p "$HOME/.grok"
+if [ -f "$HOME/.grok/pstack-models.toml" ]; then
+  cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4c-pstack-models.toml.pre"
+  grep -v '^independent-verifier' "$HOME/.grok/pstack-models.toml" \
+    > /tmp/pstack-toml-rest.txt || true
+else
+  : > /tmp/pstack-toml-rest.txt
+fi
+{
+  cat /tmp/pstack-toml-rest.txt
+  printf 'independent-verifier = "%s"\n' "$OTHER"
+} > "$HOME/.grok/pstack-models.toml"
+cp -a "$HOME/.grok/pstack-models.toml" "$EVIDENCE/gate4c-pstack-models.toml"
+
+timeout 180s grok -p 'Call the task tool exactly once, then stop.
+subagent_type: independent-verifier
+description: live slug probe
+run_in_background: true
+model: '"$OTHER"'
+prompt: Reply with exactly the word pong and stop. Do not edit files.
+Do not change model if the call is accepted. If it is rejected, quote the error verbatim and stop.' \
+  "${GROK_BASE[@]}" "${GROK_STREAM[@]}" \
+  --max-turns 8 \
+  2>"$EVIDENCE/gate4c.err" | tee "$EVIDENCE/gate4c.ndjson"
+echo $? | tee "$EVIDENCE/gate4c.exit"
+
+jq -c 'select(.type=="tool_call" and (.toolName=="task" or .toolName=="Task" or .toolName=="spawn_subagent"))
+       | {toolName, model: .rawInput.model, rawInput}' \
+  "$EVIDENCE/gate4c.ndjson" \
+  | tee "$EVIDENCE/gate4c-task-spawns.jsonl"
+
+jq -c 'select(.type=="tool_call_update" or .type=="error" or .type=="text")' \
+  "$EVIDENCE/gate4c.ndjson" \
+  | tee "$EVIDENCE/gate4c-updates.jsonl"
+```
+
+**PASS.** The spawn's `rawInput.model` equals `$OTHER` from `gate4c-slug.txt`, and the tool is accepted (child starts or returns; no model-validation rejection).
+
+**FAIL.** `task` rejects the slug, or the session sent a Cursor panel slug instead of `$OTHER`.
+
+**Evidence to keep.** toml, slug file, NDJSON, spawns, updates.
+
+Leave `independent-verifier = "$OTHER"` in the live toml so Gate 7 can use it.
+
+---
+
+## Gate 4d. No Cursor rule file after setup
+
+After Gates 4a–4c, this plugin must not have created a Cursor rules file.
+
+**Commands**
+
+```bash
+ls -la "$HOME/.cursor/rules/pstack-models.mdc" \
+  >"$EVIDENCE/gate4d-cursor-mdc.ls" 2>&1 || true
+# test ! -e returns 0 when the Cursor file is absent (required PASS).
+test ! -e "$HOME/.cursor/rules/pstack-models.mdc"
+echo $? | tee "$EVIDENCE/gate4d-mdc-absent.exit"
+test -f "$HOME/.grok/pstack-models.toml"
+echo $? | tee "$EVIDENCE/gate4d-toml-exists.exit"
+```
+
+**PASS.** `gate4d-mdc-absent.exit` is `0` (`~/.cursor/rules/pstack-models.mdc` does not exist) and `gate4d-toml-exists.exit` is `0` (`~/.grok/pstack-models.toml` exists).
+
+**FAIL.** The Cursor mdc file exists, or the Grok toml is missing after setup.
+
+**Evidence to keep.** The two ls/exit files.
 
 ---
 
@@ -588,13 +746,17 @@ get_task_output
 Reuse `$EVIDENCE/gate6.ndjson`. If it did not spawn the verifier, run a follow-up **in the same lab**, still as the parent (new headless session is a parent):
 
 ```bash
-# Only if Gate 6 missed the spawn. Writer model is GROK_MODEL.
-# OTHER must be a second line from gate4-detected-slugs.txt.
-OTHER="$(grep -vx "$GROK_MODEL" "$EVIDENCE/gate4-detected-slugs.txt" | head -n1)"
+# Only if Gate 6 missed the spawn, or spawned independent-verifier with
+# model omitted / equal to GROK_MODEL (correct when toml is inherit-parent).
+# OTHER must be a detected slug. Prefer gate4c-slug.txt.
+OTHER="$(cat "$EVIDENCE/gate4c-slug.txt" 2>/dev/null | sed -n 's/^OTHER=//p')"
+if [ -z "$OTHER" ]; then
+  OTHER="$(grep -vx "$GROK_MODEL" "$EVIDENCE/gate4-detected-slugs.txt" | head -n1)"
+fi
 echo "OTHER=$OTHER" | tee "$EVIDENCE/gate7-other-slug.txt"
 
-if [ -z "$OTHER" ]; then
-  echo "CANNOT-PROVE: detected set has only $GROK_MODEL" \
+if [ -z "$OTHER" ] || [ "$OTHER" = "$GROK_MODEL" ]; then
+  echo "CANNOT-PROVE: no detected slug different from $GROK_MODEL" \
     | tee "$EVIDENCE/gate7-cannot-prove.txt"
 else
   grok -p '/poteto-mode Do not edit hello.py.
@@ -706,8 +868,12 @@ Evidence dir:
 [ ] Gate 1 PASS  grok plugin install --trust, then grok plugin enable pstack
 [ ] Gate 1 note  without --trust: exit 1, no TUI wait (or recorded CLI delta)
 [ ] Gate 2 PASS  poteto-mode, setup-pstack, how, unslop visible; 3 agents visible
-[ ] Gate 3 PASS  no live AskQuestion / TodoWrite / generalPurpose / environment cloud
-[ ] Gate 4 PASS  ~/.grok/pstack-models.toml slugs ⊆ detected set (no default-panel fiction)
+[ ] Gate 3 PASS  no live AskQuestion / TodoWrite / generalPurpose / environment cloud; installed skills have no Cursor panel slugs
+[ ] Gate 4 PASS  detected set from live task.model rejection (no Cursor panel fiction)
+[ ] Gate 4a PASS accept-defaults / step 5; toml has none of the four Cursor slugs
+[ ] Gate 4b PASS missing toml; feature spawn omits model or uses a detected grok slug
+[ ] Gate 4c PASS independent-verifier set to a live slug (grok-4.5 when present); task accepts it
+[ ] Gate 4d PASS ~/.cursor/rules/pstack-models.mdc does not exist after setup
 [ ] Gate 5 PASS  /poteto-mode matched Investigation; Principles first; steps copied to todos
 [ ] Gate 6 PASS  Feature on /tmp/pstack-edith-lab; both python commands + exact stdout in-session
 [ ] Gate 7 PASS  parent task independent-verifier + different model + child command evidence
@@ -718,7 +884,7 @@ Evidence dir:
 [ ] Evidence directory saved (ndjson, toml, hello.py, stdout files)
 
 Final: every required gate is PASS, and Gate 7/8 are PASS or an allowed CANNOT-PROVE/SKIP.
-Required: 0, 1, 2, 3, 4, 5, 6. Gate 7 required unless CANNOT-PROVE. Gate 8 optional with SKIP.
+Required: 0, 1, 2, 3, 4, 4a, 4b, 4c, 4d, 5, 6. Gate 7 required unless CANNOT-PROVE. Gate 8 optional with SKIP.
 ```
 
 ---
