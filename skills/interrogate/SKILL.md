@@ -33,20 +33,13 @@ Write one clear paragraph. Reviewers challenge whether the work achieves the int
 
 ## Step 3, Spawn Reviewers
 
-Launch all reviewers in a single message using the `task` tool. Use the `interrogate reviewers` list from `~/.grok/pstack-models.toml` when present, one reviewer per entry, extending or shrinking the Reviewer A/B/C/D labels below to the configured entry count; otherwise use the table defaults.
-
-| Subagent | Default model |
-|----------|---------------|
-| Reviewer A | `claude-fable-5-thinking-max` |
-| Reviewer B | `gpt-5.6-sol-max` |
-| Reviewer C | `grok-4.6-fast-xhigh` |
-| Reviewer D | `claude-opus-5-thinking-xhigh` |
+Launch all reviewers in a single message using the `task` tool. Use toml array `interrogate-reviewers` per `../setup-pstack/references/resolve-model.md`, one reviewer per entry. If the file or key is absent, spawn **one** reviewer and omit `model`.
 
 For each reviewer:
 - `subagent_type`: `explore`
-- `model`: the configured `interrogate-reviewers` entry, or the table default with no configured line
+- `model`: that array entry when it is a detected slug; omit when the entry is `inherit-parent`/`auto` or the key is missing
 
-If a model slug is rejected as unresolvable when you try to spawn the subagent, check the valid slugs in the `task` tool's error message, pick the closest equivalent (prefer the highest-reasoning tier of the same family), spawn with the valid slug, and open a separate PR to update the configured value or default table. Do not block the review on the slug issue. If the configured value is `inherit-parent` or `auto`, omit `model` instead; never treat those aliases as broken slugs or enter this fallback for them.
+If `task` rejects a slug, omit `model` or retry only with a slug the error text named that is already in this session's detected set. Do not pick a closest family equivalent. If the configured value is `inherit-parent` or `auto`, omit `model`; never treat those aliases as broken slugs.
 
 Read `references/reviewer-prompt.md` and fill in the template with:
 1. The stated intent
