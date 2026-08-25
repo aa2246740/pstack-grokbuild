@@ -37,7 +37,7 @@ two steps:
 
 new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
 
-that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box, without `/setup-pstack`, every role uses `grok-4.6` (or omits `task.model`, which on this host is also 4.6) and the role's shipped effort on the plugin agent. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) is an override: it writes `~/.grok/pstack-models.toml` (slugs plus `[effort]`) and, for a real effort level, `~/.grok/roles/<role>.toml`. missing override file uses the shipped default. missing key, `inherit-parent`, or `auto` omits `task.model`. skills never send `reasoning_effort` on `task`.
+that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box, without `/setup-pstack`, every role uses `grok-4.6` (or omits `task.model`, which on this host is also 4.6) and the role's shipped effort: `medium` for mechanical/fast roles, `high` for instruction-following, `xhigh` for judgment. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) is an override: it writes `~/.grok/pstack-models.toml` (slugs plus `[effort]`) and, for a real effort level, `~/.grok/roles/<role>.toml`. missing override file uses the shipped default. missing key, `inherit-parent`, or `auto` omits `task.model`. skills never send `reasoning_effort` on `task`.
 
 this repo is the **Grok Build port**. `/setup-pstack` here configures model + effort for grok-build. official Cursor `/setup-pstack` (inside Grok Bot or inside Cursor) is a different plugin. that copy still writes `~/.cursor/rules` and uses Cursor slugs. do not install it on Grok Build and expect it to work.
 

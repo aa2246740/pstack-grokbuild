@@ -179,11 +179,11 @@ def main() -> None:
         )
 
     role_effort = {
-        "feature": "low",
-        "refactoring": "low",
-        "how-explorer": "low",
-        "why-investigators": "low",
-        "swarm-workers": "low",
+        "feature": "medium",
+        "refactoring": "medium",
+        "how-explorer": "medium",
+        "why-investigators": "medium",
+        "swarm-workers": "medium",
         "bug-fix": "high",
         "perf-issue": "high",
         "hillclimb": "high",
@@ -221,7 +221,7 @@ def main() -> None:
     )
     if 'feature = "grok-4.6"' not in defaults:
         fail("defaults.toml must ship grok-4.6 as the feature model")
-    if 'feature = "low"' not in defaults or 'bug-fix = "high"' not in defaults:
+    if 'feature = "medium"' not in defaults or 'bug-fix = "high"' not in defaults:
         fail("defaults.toml [effort] must match the shipped split")
     if 'independent-verifier = "xhigh"' not in defaults:
         fail("defaults.toml [effort] independent-verifier must be xhigh")

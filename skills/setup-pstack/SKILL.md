@@ -36,7 +36,7 @@ Panel roles (`how-critics`, `arena-runners`, `arena-cross-judge-pool`, `architec
 
 Second question, after models. `questions[].question` is a short how-should-pstack-pick-reasoning-effort line. Options, in this order, and no others:
 
-1. Shipped default (recommended). `low` for `feature`, `refactoring`, `how-explorer`, `why-investigators`, `swarm-workers`. `high` for `bug-fix`, `perf-issue`, `hillclimb`, `reflect-tooling`. `xhigh` for `judgment-and-prose`, `hardest-tasks`, `how-explainer`, `why-synthesizer`, `reflect-judgment`, `independent-verifier`, `how-critics`, `arena-runners`, `arena-cross-judge-pool`, `architect-runners`, `interrogate-reviewers`.
+1. Shipped default (recommended). `medium` for `feature`, `refactoring`, `how-explorer`, `why-investigators`, `swarm-workers`. `high` for `bug-fix`, `perf-issue`, `hillclimb`, `reflect-tooling`. `xhigh` for `judgment-and-prose`, `hardest-tasks`, `how-explainer`, `why-synthesizer`, `reflect-judgment`, `independent-verifier`, `how-critics`, `arena-runners`, `arena-cross-judge-pool`, `architect-runners`, `interrogate-reviewers`.
 2. `inherit-parent` for every role. No `~/.grok/roles` overlay. Plugin agent frontmatter stays.
 3. `xhigh` for every role.
 4. Customize per role.
@@ -132,23 +132,23 @@ interrogate-reviewers = ["grok-4.6"]
 independent-verifier = "grok-4.6"
 
 [effort]
-feature = "low"
-refactoring = "low"
+feature = "medium"
+refactoring = "medium"
 bug-fix = "high"
 perf-issue = "high"
 hillclimb = "high"
 judgment-and-prose = "xhigh"
 hardest-tasks = "xhigh"
-how-explorer = "low"
+how-explorer = "medium"
 how-explainer = "xhigh"
 how-critics = "xhigh"
-why-investigators = "low"
+why-investigators = "medium"
 why-synthesizer = "xhigh"
 reflect-tooling = "high"
 reflect-judgment = "xhigh"
 arena-runners = "xhigh"
 arena-cross-judge-pool = "xhigh"
-swarm-workers = "low"
+swarm-workers = "medium"
 architect-runners = "xhigh"
 interrogate-reviewers = "xhigh"
 independent-verifier = "xhigh"
