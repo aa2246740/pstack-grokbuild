@@ -37,7 +37,9 @@ two steps:
 
 new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
 
-that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box the mode splits work by model strength: precisely-specified code goes to sol, fast mechanical code goes to grok, and prose and judgment go to fable. the default panel is fable / sol / grok / opus 5. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) changes any of it.
+that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box, children inherit the parent model. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) writes `~/.grok/pstack-models.toml` when you want a role on a slug your `task` tool accepted this session. missing file, missing key, `inherit-parent`, or `auto` means omit `task.model`.
+
+this repo is the **Grok Build port**. official Cursor `/setup-pstack` (inside Grok Bot or inside Cursor) is a different plugin. that copy still writes `~/.cursor/rules` and uses Cursor slugs. do not install it on Grok Build and expect it to work.
 
 ## usage
 
@@ -129,7 +131,7 @@ the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/po
 | [`/swarm`](./skills/swarm/SKILL.md) | you want N parallel workers across different slices or races, then one aggregated report. |
 | [`/interrogate`](./skills/interrogate/SKILL.md) | you have a diff and want several different models to try to break it, including a strict code-quality lens. |
 | [`/automate-me`](./skills/automate-me/SKILL.md) | you want your own `-mode` skill, drafted from how you've actually worked. |
-| [`/setup-pstack`](./skills/setup-pstack/SKILL.md) | you want to pick which models pstack uses per role. detects your models and writes a config rule. |
+| [`/setup-pstack`](./skills/setup-pstack/SKILL.md) | you want to pick which models pstack uses per role. detects your models and writes `~/.grok/pstack-models.toml`. |
 | [`/reflect`](./skills/reflect/SKILL.md) | a long task landed and you want the recipe captured as a skill edit. |
 | [`/teach`](./skills/teach/SKILL.md) | you want to actually understand a change or subsystem, not just have it summarized. runs how + why and weaves one plain explanation, built up diagram by diagram. |
 | [`/tdd`](./skills/tdd/SKILL.md) | you're fixing a bug and there's a cheap local test path. write the failing test first, then the fix. |
@@ -238,7 +240,7 @@ twenty-one short skills, one principle each. `poteto-mode` indexes them inline a
 a few things `poteto-mode` referenced in Cursor pstack and does not bundle here:
 
 - `/deslop`, `control-cli`, and `control-ui` lived in `cursor-team-kit`. use `/unslop`, `/no-comments`, and drive the real app yourself.
-- independent verify is `task` + `independent-verifier` + a different `model`, not a Cursor Cloud Agent. see [HARNESS.md](./HARNESS.md).
+- independent verify is `task` + `independent-verifier`. send a different `model` when the toml names a detected slug; otherwise omit `model`. not a Cursor Cloud Agent. see [HARNESS.md](./HARNESS.md).
 - Graphite `gt` is optional. if it is missing, use `gh` and git.
 - Benny remains under `automations/benny/` as source. Grok Build automations are plugin hooks/workflows, not this pack.
 
@@ -252,7 +254,7 @@ grok-build has a built-in `plan` agent type. pstack still does not default to pl
 
 type [`/automate-me`](./skills/automate-me/SKILL.md). it mines your recent transcripts, drafts a `<your-name>-mode` skill from how you've actually worked, and routes through pstack underneath. you keep pstack as the base and end up with your own routing skill alongside `poteto-mode`.
 
-models are configurable too. type [`/setup-pstack`](./skills/setup-pstack/SKILL.md). it detects slugs your `task` tool accepts and writes `~/.grok/pstack-models.toml`.
+models are configurable too. type [`/setup-pstack`](./skills/setup-pstack/SKILL.md). it detects slugs your `task` tool accepts and writes **only** `~/.grok/pstack-models.toml`. it will not write `~/.cursor/rules`.
 
 ## automations
 
