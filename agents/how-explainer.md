@@ -2,7 +2,7 @@
 name: how-explainer
 description: pstack how explainer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/how-explainer.toml.
 background: true
-effort: max
+effort: xhigh
 permissionMode: plan
 capabilityMode: execute
 inheritSkills: false

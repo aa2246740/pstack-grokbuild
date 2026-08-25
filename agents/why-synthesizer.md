@@ -2,7 +2,7 @@
 name: why-synthesizer
 description: pstack why synthesizer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/why-synthesizer.toml.
 background: true
-effort: max
+effort: xhigh
 ---
 
 # Why Synthesizer

@@ -2,7 +2,7 @@
 name: why-investigators
 description: pstack why investigator. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/why-investigators.toml.
 background: true
-effort: high
+effort: medium
 ---
 
 # Why Investigators
