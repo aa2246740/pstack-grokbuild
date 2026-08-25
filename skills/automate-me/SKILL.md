@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 A guided flow for turning the user's working conventions into a skill agents will follow. The output is one `-mode` skill tailored to them (e.g. `jay-mode`, `priya-mode`).
 
-This skill orchestrates three others: an inline mining pass (see step 1), Cursor's built-in `create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them; it doesn't replace them.
+This skill orchestrates three others: an inline mining pass (see step 1), Grok Build's `/create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them; it doesn't replace them.
 
 ## Flow
 
@@ -43,7 +43,7 @@ Cross-check across slices before elevating a signal. Patterns seen in 2+ slices 
 
 Mining misses intent that hasn't come up yet. Use the `ask_user_question` tool (structured multi-choice) rather than asking the user to type from scratch. Lower cognitive load, higher hit rate.
 
-Shape: one or two questions with 4-6 options each, `allow_multiple: true` for category questions. Start broad ("Which areas matter most?"), then follow up on selected areas with specific options. After the structured rounds, one free-form chat question catches anything the options missed.
+Shape: one or two questions with 4-6 options each, `multi_select: true` for category questions. Start broad ("Which areas matter most?"), then follow up on selected areas with specific options. After the structured rounds, one free-form chat question catches anything the options missed.
 
 Don't dump 20 questions. Two structured rounds plus one open question is usually enough.
 
@@ -106,4 +106,4 @@ Run a description-optimization loop only if the skill's trigger accuracy turns o
 
 - The **poteto-mode** skill: example of the output shape.
 - The **unslop** skill: prose discipline for every line.
-- Cursor's built-in `create-skill` skill: skill authoring process and writing guidelines.
+- Grok Build's `/create-skill`: skill authoring process and writing guidelines.

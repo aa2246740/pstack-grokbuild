@@ -73,7 +73,7 @@ Order phases so infrastructure and shared types land first (the **foundational-t
 
 For changes touching existing code, apply the **redesign-from-first-principles** principle skill: if we'd built this with the new requirement on day one, what would it look like? Redesign holistically; deliver incrementally.
 
-If a phase creates or edits a skill, the phase instructs the implementer to use the **create-skill** skill (Cursor's built-in for authoring SKILL.md files).
+If a phase creates or edits a skill, the phase instructs the implementer to use Grok Build's `/create-skill` for authoring SKILL.md files.
 
 ## 5. Verification per phase
 
@@ -98,7 +98,7 @@ In the overview, name which poteto-mode non-negotiables the implementer must app
 - the **interrogate** skill for adversarial review on contested designs before shipping.
 - `/unslop` and `/no-comments` over each diff before commit. the **unslop** skill over any prose surface.
 - the **show-me-your-work** skill to keep a decision trail when the plan is large enough to need an auditable record.
-- Cursor's built-in **babysit** skill after opening the PR.
+- the **Babysit** playbook after opening the PR, and only when the user asks. Not Grok Build's built-in babysit command.
 
 ## 7. Hand back
 
