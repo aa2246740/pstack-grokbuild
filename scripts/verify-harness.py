@@ -56,8 +56,29 @@ FORBIDDEN = [
     r"cloud-agent URL",
 ]
 
+# Official Cursor panel slugs. Must not appear as skill fallbacks.
+# TEST-PLAN.md may name them as FAIL tokens. Skills may not.
+CURSOR_MODEL_SLUGS = (
+    "grok-4.6-fast-xhigh",
+    "gpt-5.6-sol-max",
+    "claude-fable-5-thinking-max",
+    "claude-opus-5-thinking-xhigh",
+)
+
 SKIP_DIRS = {".git", "automations", "scripts"}
-SKIP_FILES = {"HARNESS.md", "UPSTREAM"}
+SKIP_FILES = {"HARNESS.md", "UPSTREAM", "TEST-PLAN.md"}
+
+
+def allows_cursor_rules_mention(path: pathlib.Path) -> bool:
+    rel = path.relative_to(ROOT)
+    if rel.name in SKIP_FILES | {"README.md"}:
+        return True
+    parts = rel.parts
+    if parts and parts[0] == "docs":
+        return True
+    if parts[:2] == ("skills", "setup-pstack"):
+        return True
+    return False
 
 
 def fail(msg: str) -> None:
@@ -125,11 +146,28 @@ def main() -> None:
             continue
         text = path.read_text(encoding="utf-8")
         for pat in FORBIDDEN:
+            if pat == r"~/.cursor/rules/" and allows_cursor_rules_mention(path):
+                continue
             if re.search(pat, text):
                 rel = path.relative_to(ROOT)
                 hits.append(f"{rel}: /{pat}/")
     if hits:
         fail("leftover Cursor harness call sites:\n  " + "\n  ".join(hits))
+
+    slug_hits: list[str] = []
+    skills_root = ROOT / "skills"
+    for path in skills_root.rglob("*"):
+        if not path.is_file() or path.suffix != ".md":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for slug in CURSOR_MODEL_SLUGS:
+            if slug in text:
+                slug_hits.append(f"{path.relative_to(ROOT)}: {slug}")
+    if slug_hits:
+        fail(
+            "Cursor panel slugs in skills/ (omit task.model instead):\n  "
+            + "\n  ".join(slug_hits)
+        )
 
     print("PASS")
     print(f"playbooks: {len(NAMED_22)} named + opening-a-pr")

@@ -2,6 +2,11 @@
 """Rewrite Cursor harness call sites onto grok-build tools.
 
 Principles and playbook steps stay. Only named harness APIs change.
+
+This pass rewrites tool ids and the models-file path. It does not rewrite
+model slugs. Official pstack ships a Cursor panel as inline defaults.
+After a refresh, those slugs must not remain as skill fallbacks: omit
+task.model when ~/.grok/pstack-models.toml is absent or inherit-parent/auto.
 """
 
 from __future__ import annotations
@@ -77,6 +82,30 @@ def transform(text: str) -> str:
     return text
 
 
+CURSOR_MODEL_SLUGS = (
+    "grok-4.6-fast-xhigh",
+    "gpt-5.6-sol-max",
+    "claude-fable-5-thinking-max",
+    "claude-opus-5-thinking-xhigh",
+)
+
+
+def assert_no_cursor_model_slugs() -> None:
+    hits: list[str] = []
+    skills = ROOT / "skills"
+    for path in skills.rglob("*.md"):
+        text = path.read_text(encoding="utf-8")
+        for slug in CURSOR_MODEL_SLUGS:
+            if slug in text:
+                hits.append(f"{path.relative_to(ROOT)}: {slug}")
+    if hits:
+        raise SystemExit(
+            "adapt-harness does not rewrite model slugs; skills/ still names "
+            "a Cursor panel fallback. Omit task.model instead.\n  "
+            + "\n  ".join(hits)
+        )
+
+
 def main() -> None:
     changed = 0
     for path in ROOT.rglob("*"):
@@ -89,6 +118,7 @@ def main() -> None:
             changed += 1
             print(path.relative_to(ROOT))
     print(f"rewrote {changed} files")
+    assert_no_cursor_model_slugs()
 
 
 if __name__ == "__main__":
