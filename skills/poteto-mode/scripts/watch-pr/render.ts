@@ -2,7 +2,7 @@ import type * as T from "./types.ts";
 export const renderJson = (verdict: T.WatcherVerdict): string =>
   `${JSON.stringify(verdict)}\n`;
 function ciCell(row: T.PrSnapshot): string {
-  if (row.kind !== "open") return "—";
+  if (row.kind !== "open") return "\u2014";
   const was = row.ci.hadPreviousPassingCi ? ", was ✅" : "";
   switch (row.ci.kind) {
     case "ci-clean":
@@ -20,7 +20,7 @@ function ciCell(row: T.PrSnapshot): string {
   }
 }
 function reviewCell(row: T.PrSnapshot): string {
-  if (row.kind !== "open") return "—";
+  if (row.kind !== "open") return "\u2014";
   const open = row.threads.length;
   return row.reviewAutomationRunning
     ? open
@@ -149,7 +149,7 @@ export function renderPretty(verdict: T.WatcherVerdict): string {
     case "READY": {
       const detail =
         verdict.scope.kind === "single" && verdict.scope.pr.kind === "ready-pr"
-          ? `\nmergeStateStatus=${verdict.scope.pr.proof.ci.github.mergeStateStatus}\nreviewDecision=${verdict.scope.pr.proof.gate.reviewDecision}\nisDraft=${verdict.scope.pr.proof.gate.draft === "draft-allowed"}${verdict.scope.pr.proof.gate.draft === "draft-allowed" ? "\nnote=draft allowed (--allow-draft); leave draft — do not mark ready" : ""}`
+          ? `\nmergeStateStatus=${verdict.scope.pr.proof.ci.github.mergeStateStatus}\nreviewDecision=${verdict.scope.pr.proof.gate.reviewDecision}\nisDraft=${verdict.scope.pr.proof.gate.draft === "draft-allowed"}${verdict.scope.pr.proof.gate.draft === "draft-allowed" ? "\nnote=draft allowed (--allow-draft); leave draft \u2014 do not mark ready" : ""}`
           : "";
       return `READY: no merge conflicts, no unresolved review threads, no failing or pending checks${detail}\n`;
     }

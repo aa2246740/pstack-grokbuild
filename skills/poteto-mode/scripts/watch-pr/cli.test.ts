@@ -148,7 +148,7 @@ describe("rendering", () => {
     const rendered = renderPretty(status);
     expect(rendered).toContain("| PR | CI | Review | Merge |");
     expect(rendered).toContain(
-      "| [#1](https://github.com/owner/repo/pull/1) | — | — | ✅ merged |"
+      "| [#1](https://github.com/owner/repo/pull/1) | \u2014 | \u2014 | ✅ merged |"
     );
   });
 });

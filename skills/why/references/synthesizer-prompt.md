@@ -120,7 +120,7 @@ One or two sentences summarizing your overall confidence. E.g.:
 
 Before finalizing, review your output against this checklist:
 
-1. Does every claim in "What We Found" have a citation? If not, add one or move the claim to "Inferred" or "Hypotheses".
+1. Does every claim in "What We Found" have a citation? If not, add one or move the claim to "Inferred" or "Hypotheses."
 2. Is the phrasing tier-appropriate? (Direct claims can use "because"; Inferred claims cannot.)
 3. Did you surface any contradictions you noticed, or did you quietly pick one?
 4. Does the "What We Don't Know" section exist and name specific gaps? If it's empty or missing, be suspicious. Historical investigations almost always have gaps.
