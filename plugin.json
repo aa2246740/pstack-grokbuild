@@ -1,6 +1,6 @@
 {
   "name": "pstack",
-  "version": "0.14.2-grokbuild.0",
+  "version": "0.14.3-grokbuild.0",
   "description": "if you want to go fast, go deep first. pstack for Grok Build: 22 playbooks and 21 principles, with harness calls on grok-build tools.",
   "author": {
     "name": "Lauren Tan"
