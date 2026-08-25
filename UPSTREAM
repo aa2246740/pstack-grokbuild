@@ -1,0 +1,11 @@
+Official pstack (discipline source)
+https://github.com/cursor/plugins/tree/main/pstack
+tree 46125561306434d8a1d7745d540d8932ab0cd2a2
+
+Official Grok Build (harness source)
+https://github.com/xai-org/grok-build
+commit c2ad97f87aea4303b6000a2c22128bc91ee76c9b
+
+This port keeps pstack's 22 playbooks and 21 principles.
+It rewrites only harness call sites onto grok-build tools named in HARNESS.md.
+It is not a fork of any third-party pstack port.

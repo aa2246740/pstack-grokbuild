@@ -1,0 +1,23 @@
+{
+  "name": "pstack",
+  "version": "0.14.2-grokbuild.0",
+  "description": "if you want to go fast, go deep first. pstack for Grok Build: 22 playbooks and 21 principles, with harness calls on grok-build tools.",
+  "author": {
+    "name": "Lauren Tan"
+  },
+  "homepage": "https://github.com/aa2246740/pstack-grokbuild",
+  "repository": "https://github.com/aa2246740/pstack-grokbuild",
+  "license": "MIT",
+  "keywords": [
+    "pstack",
+    "poteto-mode",
+    "workflow",
+    "principles",
+    "agent-style",
+    "subagents",
+    "unslop",
+    "grok-build"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
