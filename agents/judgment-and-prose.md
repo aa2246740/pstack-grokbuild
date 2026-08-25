@@ -2,7 +2,7 @@
 name: judgment-and-prose
 description: pstack judgment and prose writer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/judgment-and-prose.toml.
 background: true
-effort: xhigh
+effort: max
 ---
 
 # Judgment And Prose

@@ -14,6 +14,17 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PLAYBOOKS = ROOT / "skills" / "poteto-mode" / "playbooks"
 SKILL = ROOT / "skills" / "poteto-mode" / "SKILL.md"
+SCRIPTS = pathlib.Path(__file__).resolve().parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+from effort_ladder import (  # noqa: E402
+    JUDGMENT,
+    INSTRUCTION,
+    MECHANICAL,
+    SHIP_TIME_ENUM,
+    role_effort_map,
+    self_check,
+)
 
 NAMED_22 = [
     "investigation",
@@ -122,7 +133,9 @@ def main() -> None:
         "agents/feature.md",
         "agents/how-explainer.md",
         "skills/setup-pstack/references/resolve-effort.md",
+        "skills/setup-pstack/references/effort-ladder.md",
         "skills/setup-pstack/references/defaults.toml",
+        "scripts/effort_ladder.py",
         "HARNESS.md",
     ):
         if not (ROOT / required).is_file():
@@ -143,6 +156,7 @@ def main() -> None:
         "reasoning_effort",
         "apply_definition_runtime_defaults",
         "AgentDefinition",
+        "effort-ladder",
     ):
         if token not in harness:
             fail(f"HARNESS.md missing {token}")
@@ -178,28 +192,17 @@ def main() -> None:
             + "\n  ".join(slug_hits)
         )
 
-    role_effort = {
-        "feature": "medium",
-        "refactoring": "medium",
-        "how-explorer": "medium",
-        "why-investigators": "medium",
-        "swarm-workers": "medium",
-        "bug-fix": "high",
-        "perf-issue": "high",
-        "hillclimb": "high",
-        "reflect-tooling": "high",
-        "judgment-and-prose": "xhigh",
-        "hardest-tasks": "xhigh",
-        "how-explainer": "xhigh",
-        "why-synthesizer": "xhigh",
-        "reflect-judgment": "xhigh",
-        "independent-verifier": "xhigh",
-        "how-critics": "xhigh",
-        "arena-runners": "xhigh",
-        "arena-cross-judge-pool": "xhigh",
-        "architect-runners": "xhigh",
-        "interrogate-reviewers": "xhigh",
-    }
+    try:
+        self_check()
+    except SystemExit as exc:
+        fail(f"effort_ladder self_check: {exc}")
+    role_effort = role_effort_map(SHIP_TIME_ENUM)
+    ladder_md = (ROOT / "skills" / "setup-pstack" / "references" / "effort-ladder.md").read_text(
+        encoding="utf-8"
+    )
+    for key in (*MECHANICAL, *INSTRUCTION, *JUDGMENT):
+        if f"`{key}`" not in ladder_md:
+            fail(f"effort-ladder.md missing role `{key}`")
     for key, level in role_effort.items():
         path = ROOT / "agents" / f"{key}.md"
         if not path.is_file():
@@ -221,10 +224,23 @@ def main() -> None:
     )
     if 'feature = "grok-4.6"' not in defaults:
         fail("defaults.toml must ship grok-4.6 as the feature model")
-    if 'feature = "medium"' not in defaults or 'bug-fix = "high"' not in defaults:
-        fail("defaults.toml [effort] must match the shipped split")
-    if 'independent-verifier = "xhigh"' not in defaults:
-        fail("defaults.toml [effort] independent-verifier must be xhigh")
+    if f'feature = "{role_effort["feature"]}"' not in defaults:
+        fail("defaults.toml [effort] feature must match the ship-time ladder")
+    if f'bug-fix = "{role_effort["bug-fix"]}"' not in defaults:
+        fail("defaults.toml [effort] bug-fix must match the ship-time ladder")
+    if f'independent-verifier = "{role_effort["independent-verifier"]}"' not in defaults:
+        fail("defaults.toml [effort] independent-verifier must match the ship-time ladder")
+    skill_setup = (ROOT / "skills" / "setup-pstack" / "SKILL.md").read_text(encoding="utf-8")
+    if "Effort options: inherit-parent, auto, none, minimal" in skill_setup:
+        fail("setup-pstack SKILL.md still offers CLI-parseable none/minimal as Agent effort options")
+    if 'feature = "medium"' in defaults or 'refactoring = "medium"' in defaults:
+        fail("defaults.toml still hardcodes mechanical=medium; ship the resolved ladder split")
+    if "Shipped default (recommended). `medium`" in skill_setup:
+        fail("setup-pstack SKILL.md still has a handwritten medium effort default")
+    if "Do not invent `ultra`" not in skill_setup:
+        fail("setup-pstack SKILL.md must refuse invented ultra")
+    if "references/effort-ladder.md" not in skill_setup:
+        fail("setup-pstack SKILL.md must point at effort-ladder.md")
     for slug in CURSOR_MODEL_SLUGS:
         if slug in defaults:
             fail(f"defaults.toml contains Cursor panel slug {slug}")

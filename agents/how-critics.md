@@ -2,7 +2,7 @@
 name: how-critics
 description: pstack how critic. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/how-critics.toml.
 background: true
-effort: xhigh
+effort: max
 permissionMode: plan
 capabilityMode: execute
 inheritSkills: false
