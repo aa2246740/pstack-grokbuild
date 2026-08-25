@@ -10,4 +10,6 @@ Every pstack skill that spawns `task` uses this rule. Read it once, then apply i
 6. Architect without a toml may still spawn **two** children with `model` omitted (same parent model twice) when the skill requires two structurally distinct sketches. That is two prompts, not two invented slugs.
 7. If `task` rejects a slug, omit `model` or retry only with a slug the error text named that is already in this session's detected set. Do not pick a "closest family equivalent."
 
-This plugin is the Grok Build port. It writes only `~/.grok/pstack-models.toml`. It does not ship a fallback slug list.
+Effort is a separate overlay. Never send `reasoning_effort` on `task`. Spawn `subagent_type` equal to the role key and follow [`resolve-effort.md`](resolve-effort.md).
+
+This plugin is the Grok Build port. It writes `~/.grok/pstack-models.toml` and pstack-managed `~/.grok/roles/*.toml`. It does not ship a fallback slug list.
