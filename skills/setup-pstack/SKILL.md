@@ -15,7 +15,7 @@ The models file is not a grok-build `[subagents.models]` table. That table maps 
 
 This section is the only source for `ask_user_question`. Copy the option shape. Do not invent options. Do not quote **Agent only** into the TUI.
 
-The question text, every option `label`, and every option `description` may use `inherit-parent`, `auto`, slugs from this session's detected set, effort tokens from this session's detected effort enum, pstack role key names, and plain words that explain those choices (every role, this chat's model, shipped default, grok-4.6, recommended split, mechanical, instruction-following, judgment, how-explainer, independent-verifier, customize per role, highest, one step down, two steps down). Nothing else. Do not put a level in the TUI that this session did not detect. Do not invent `ultra`.
+The question text, every option `label`, and every option `description` may use `inherit-parent`, `auto`, slugs from this session's detected set, effort tokens from this session's detected effort enum, pstack role key names, and plain words that explain those choices (every role, this chat's model, shipped default, grok-4.6, recommended split, mechanical, instruction-following, judgment, how-explainer, independent-verifier, customize per role, highest, one step down, two steps down). Nothing else. Do not put a level in the TUI that this session did not detect. Do not invent `ultra`. Do not offer `max` unless this session's live `use one of:` list named it.
 
 ### Models
 
@@ -43,7 +43,7 @@ Second question, after models. Detect the live enum first ([`references/effort-l
 
 If they pick customize: follow-up questions, one role at a time or grouped. Each role's options are only `inherit-parent`, `auto`, and each detected AgentDefinition level. Effort is one scalar per role even when the model key is an array.
 
-Do not add `none`, `minimal`, or per-model menu ids such as `deep`. Do not add a token that was not detected.
+Do not add `none`, `minimal`, or per-model menu ids such as `deep`. Do not add a token that was not detected. Do not offer `max` unless the live CLI listed it.
 
 ## Steps
 
@@ -61,12 +61,14 @@ Never write a slug you have not confirmed this session. `inherit-parent` and `au
 
 Follow [`references/effort-ladder.md`](references/effort-ladder.md). Do not send `reasoning_effort` on `task`.
 
-- Prefer `grok --reasoning-effort __pstack_not_an_effort__` and the `expected one of:` list.
-- Else parse `grok --help` for `--reasoning-effort` / `--effort`, canonical list only (before `also` / menu ids).
+- Prefer `grok --reasoning-effort not-a-real-effort` and the live `use one of:` list (`unknown effort level …; use one of: xhigh, high, medium, low` on grok 1.0.5). That list is strongest-first; reverse to weak → strong before stepping down.
+- Do not use FromStr or `Effort::VALID_VALUES`. Those include reserved `max` that this CLI rejects.
+- Else, only if `use one of:` never printed, parse `grok --help` for `--reasoning-effort` / `--effort`, canonical list only (before `also` / menu ids). Drop any help token the runtime list omitted.
 - Drop `none`, `minimal`, and per-model menu ids such as `deep`.
 - Do not invent `ultra`.
-- Do not reverse-sort from the TUI effort menu (it omits `max` and is strongest-first).
-- If detection returns nothing, use the ship-time snapshot in that file (`low` `medium` `high` `xhigh` `max`) and remember to say so in step 6, not in the TUI.
+- Do not offer `max` unless this session's `use one of:` named it.
+- Do not use the TUI effort menu as the set.
+- If detection returns nothing, use the ship-time snapshot in that file (`low` `medium` `high` `xhigh`) and remember to say so in step 6, not in the TUI.
 
 Compute the three-tier split from the detected (or snapshot) list. That computed table is the shipped-default effort option this session. It may differ from [`references/defaults.toml`](references/defaults.toml) if the live enum grew.
 
@@ -82,7 +84,7 @@ Show every role with its current model and effort. Mark any real slug not in the
 
 When they pick shipped-default models, write `grok-4.6` in every model key (one-entry arrays). When they pick inherit-parent models everywhere, write inherit-parent. When they pick one detected slug everywhere, write that slug. When they customize, write those choices.
 
-When they pick shipped-default effort, write the **computed** `[effort]` table from step 1b (not a memorized medium/high/xhigh split). When they pick inherit-parent effort everywhere, write inherit-parent for every `[effort]` key. When they pick highest-everywhere or customize, write those `[effort]` values.
+When they pick shipped-default effort, write the **computed** `[effort]` table from step 1b (from this session's `use one of:` list, not VALID_VALUES and not a memorized max split). When they pick inherit-parent effort everywhere, write inherit-parent for every `[effort]` key. When they pick highest-everywhere or customize, write those `[effort]` values.
 
 ### 4. Validate
 
@@ -108,7 +110,7 @@ Do not write `model`, `prompt_file`, `default_capability_mode`, or `default_isol
 
 First run writes the shipped default when they accept it. Copy [`references/defaults.toml`](references/defaults.toml) for **models**. Replace `grok-4.6` with `inherit-parent` only when `grok-4.6` was not detected this session. Replace the `[effort]` table with the computed live split when that split differs from the file.
 
-EXAMPLE (ship-time snapshot). Same `[effort]` bytes as `references/defaults.toml` when the live enum is `low` `medium` `high` `xhigh` `max`. If this session detected something else, write that computed table instead.
+EXAMPLE (ship-time snapshot). Same `[effort]` bytes as `references/defaults.toml` when the live usable set is `low` `medium` `high` `xhigh`. If this session's `use one of:` differed, write that computed table instead.
 
 ```toml
 # Write only slugs detected this session (task.model rejection, grok inspect, grok models).
@@ -144,26 +146,26 @@ interrogate-reviewers = ["grok-4.6"]
 independent-verifier = "grok-4.6"
 
 [effort]
-feature = "high"
-refactoring = "high"
-bug-fix = "xhigh"
-perf-issue = "xhigh"
-hillclimb = "xhigh"
-judgment-and-prose = "max"
-hardest-tasks = "max"
-how-explorer = "high"
-how-explainer = "max"
-how-critics = "max"
-why-investigators = "high"
-why-synthesizer = "max"
-reflect-tooling = "xhigh"
-reflect-judgment = "max"
-arena-runners = "max"
-arena-cross-judge-pool = "max"
-swarm-workers = "high"
-architect-runners = "max"
-interrogate-reviewers = "max"
-independent-verifier = "max"
+feature = "medium"
+refactoring = "medium"
+bug-fix = "high"
+perf-issue = "high"
+hillclimb = "high"
+judgment-and-prose = "xhigh"
+hardest-tasks = "xhigh"
+how-explorer = "medium"
+how-explainer = "xhigh"
+how-critics = "xhigh"
+why-investigators = "medium"
+why-synthesizer = "xhigh"
+reflect-tooling = "high"
+reflect-judgment = "xhigh"
+arena-runners = "xhigh"
+arena-cross-judge-pool = "xhigh"
+swarm-workers = "medium"
+architect-runners = "xhigh"
+interrogate-reviewers = "xhigh"
+independent-verifier = "xhigh"
 ```
 
 ### 6. Confirm
@@ -184,6 +186,6 @@ Do not read `~/.cursor/rules/pstack-models.mdc`. If that file exists on disk, ig
 
 Proceed only on Grok Build: live `task` tool (`run_in_background`, `isolation`) and/or `grok` CLI. If this session would write Cursor rules paths, stop. Do not write those paths. Do not discuss that stop in the TUI. This plugin is the Grok Build port.
 
-Do not copy an example table from another product, from older revisions of this skill, or from training memory. Models come from this session's detected set. Effort comes from [`references/effort-ladder.md`](references/effort-ladder.md) applied to this session's detected enum.
+Do not copy an example table from another product, from older revisions of this skill, or from training memory. Models come from this session's detected set. Effort comes from [`references/effort-ladder.md`](references/effort-ladder.md) applied to this session's live `use one of:` list. Do not copy `Effort::VALID_VALUES`.
 
 Do not offer a menu item that is not in **Ask the human**. Do not mention other products in the TUI. Do not offer to port or mix a mapping from another tool.
