@@ -1,53 +1,94 @@
 # pstack
 
-i'm [poteto](https://x.com/poteto). i'm not a president or ceo, but i've worked with millions of lines of code at Meta, Netflix, and Cursor. i'm also on the react core team where i help build and maintain react compiler.
+**中文.** 这是 official pstack 的 Grok Build 移植。玩法和原则来自 poteto 的 official pstack；调用层换成 grok-build 工具。
 
-there's a growing sense that ai writes too much slop code. i agree. i don't want to ship like a team of twenty slop artists. throughput without quality is not a goal i aspire to. if you want to go fast, go deep first. 
+**English.** This is a Grok Build port of official pstack. Playbooks and principles are poteto's; only the harness call layer is swapped.
 
-this is pstack for [Grok Build](https://github.com/xai-org/grok-build). the 22 playbooks and 21 principles are [poteto's](https://x.com/poteto), from [official pstack](https://github.com/cursor/plugins/tree/main/pstack). harness calls use grok-build tools named in [HARNESS.md](./HARNESS.md).
+## 来源 / Credits
 
-**pstack is my answer.** these are the same skills used to ship high quality code. the goal is not to maximize loc, in fact it's the opposite. pstack helps you write less, but higher quality code.
+22 个玩法（playbooks）和 21 条原则（principles）是 [poteto](https://x.com/poteto) 写的，出自 [official pstack](https://github.com/cursor/plugins/tree/main/pstack)。本仓库是 Grok Build 移植（[aa2246740/pstack-grokbuild](https://github.com/aa2246740/pstack-grokbuild)）。调用层用 [HARNESS.md](./HARNESS.md) 里的 grok-build 工具名。玩法和原则不是本仓库写的。
 
-**pstack gives you fearless parallelism.** when you can go deep on one agent and trust it to write good, verifiable code, you can truly parallelize with confidence. start with `poteto-mode` and trust that they'll apply rigorous engineering principles to their work.
+The 22 playbooks and 21 principles are [poteto](https://x.com/poteto)'s, from [official pstack](https://github.com/cursor/plugins/tree/main/pstack). This repository is the Grok Build port ([aa2246740/pstack-grokbuild](https://github.com/aa2246740/pstack-grokbuild)). Harness calls use grok-build tools named in [HARNESS.md](./HARNESS.md). This port did not author those playbooks or principles.
 
-**use the models and effort you have.** the Grok Build default is `grok-4.6` plus per-role reasoning effort. `/setup-pstack` is an override. this is not the Cursor plugin.
+poteto 的判断是：少写 slop；想快就先做深；当你能信一个 agent 写出可核验的代码，才谈得上放心并行。那是 poteto 的想法，下面按来源引用，不当成本仓库作者的自述。
 
-fork it. improve it. make it yours. PRs are welcome! 
+poteto's idea is less slop, go deep first, and parallelize only after one agent can be trusted to write verifiable code. That philosophy is theirs. This README does not speak as poteto.
 
-## install
+## 安装 / Install
 
 ```bash
 grok plugin install aa2246740/pstack-grokbuild --trust
+grok plugin enable pstack
 ```
 
-or from a local checkout:
+本地目录也可以：
+
+A local checkout also works:
 
 ```bash
 grok plugin install /path/to/pstack-grokbuild --trust
+grok plugin enable pstack
 ```
 
-then enable it (`grok plugin enable pstack` or Space in the Plugins tab). harness mapping: [HARNESS.md](./HARNESS.md).
+Plugins 页里按空格也能启用。工具对照见 [HARNESS.md](./HARNESS.md)。
 
-## get started
+You can also enable it with Space in the Plugins tab. Tool mapping is in [HARNESS.md](./HARNESS.md).
 
-two steps:
+## 开始用 / Get started
 
-1. use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) whenever you're doing anything that requires rigor. no setup required.
-2. optionally run [`/setup-pstack`](./skills/setup-pstack/SKILL.md) if you want to change models or effort.
+两步。
 
-new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
+Two steps.
 
-that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box, without `/setup-pstack`, every role uses `grok-4.6` (or omits `task.model`, which on this host is also 4.6) and a three-tier effort split stepped down from the live CLI usable set (`use one of:`). the ship-time snapshot is `xhigh` for judgment, `high` for instruction-following, `medium` for mechanical. do not ship `max`; grok 1.0.5 rejects it. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) re-detects from live `use one of:` and rewrites that split if it changed; it writes `~/.grok/pstack-models.toml` (slugs plus `[effort]`) and, for a real effort level, `~/.grok/roles/<role>.toml`. missing override file uses the shipped default. missing key, `inherit-parent`, or `auto` omits `task.model`. skills never send `reasoning_effort` on `task`. spawn skills cannot see a later enum; run setup if the binary grew a new level.
+1. 要做事、要严谨，直接用 [`/poteto-mode`](./skills/poteto-mode/SKILL.md)。不用先跑 setup。
+2. 只有想改模型或 effort 时，才跑 [`/setup-pstack`](./skills/setup-pstack/SKILL.md)。它是可选的、全局的，写入 `~/.grok/pstack-models.toml` 和 `~/.grok/roles/<role>.toml`。
 
-this repo is the **Grok Build port**. `/setup-pstack` here configures model + effort for grok-build. official Cursor `/setup-pstack` (inside Grok Bot or inside Cursor) is a different plugin. that copy still writes `~/.cursor/rules` and uses Cursor slugs. do not install it on Grok Build and expect it to work.
+1. Use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) for work that needs rigor. No setup required.
+2. Optionally run [`/setup-pstack`](./skills/setup-pstack/SKILL.md) to change models or effort. It is optional and global. It writes `~/.grok/pstack-models.toml` plus `~/.grok/roles/<role>.toml`.
 
-## usage
+第一次用可以看 [pstack 指南](./docs/guide/README.md)：安装、提问、核验、过夜跑。
 
-use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) at the start of a task. it reads your request, picks from a set of playbooks, and runs the other skills as the steps need them.
+New here? The [pstack guide](./docs/guide/README.md) walks through a first real task, from setup and prompting through verification and overnight runs.
 
-### just use [`/poteto-mode`](./skills/poteto-mode/SKILL.md)
+其余技能是按需的。`/poteto-mode` 会在步骤需要时自己去调。
 
-this skill is the main shortcut. i use it whenever i need the agent to do rigorous engineering work. it comes with twenty-two playbooks:
+The other skills are situational. The mode skill uses them when a step needs them.
+
+## 默认模型与 effort / Defaults
+
+装完就能用，不必先 `/setup-pstack`。
+
+A fresh install is usable without `/setup-pstack`.
+
+**模型 / Model.** 每个角色默认 `grok-4.6`。`task` 若拒收这个 slug，就省略 `task.model`。不要编造 Cursor 面板 slug（`grok-4.6-fast-xhigh`、`gpt-5.6-sol-max`、`claude-fable-5-thinking-max`、`claude-opus-5-thinking-xhigh`）。
+
+Every role defaults to `grok-4.6`. If `task` rejects that slug, omit `task.model`. Do not invent Cursor panel slugs (`grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`, `claude-fable-5-thinking-max`, `claude-opus-5-thinking-xhigh`).
+
+**effort.** 以 grok 1.0.5 现场 CLI 为准。`use one of: xhigh, high, medium, low`。本仓库出厂分层是判断 / 解释 / 核对 / 评审组 `xhigh`，跟指令（bug-fix、perf-issue、hillclimb、reflect-tooling）`high`，机械活（feature、refactoring、how-explorer、why-investigators、swarm-workers）`medium`。不默认 `max`。这个 CLI 不认 `max`。skill 从不在 `task` 上发送 `reasoning_effort`。
+
+Effort follows the live grok 1.0.5 CLI. `use one of: xhigh, high, medium, low`. Shipped split is judgment / explainer / verifier / panels `xhigh`, instruction-following `high`, mechanical `medium`. Do not ship `max`. This CLI rejects `max`. Skills never send `reasoning_effort` on `task`.
+
+没有覆盖文件就用上述出厂值。toml 里缺键、`inherit-parent` 或 `auto` 时，省略 `task.model`。`/setup-pstack` 会按当前 CLI 的 `use one of:` 再探测一遍；若分层变了就重写。二进制以后多出新档位，要再跑一次 setup。子 skill 看不到新 enum。
+
+A missing override file uses the shipped default. A missing key, `inherit-parent`, or `auto` omits `task.model`. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) re-detects from live `use one of:` and rewrites the split if it changed. Spawn skills cannot see a later enum. Run setup again if the binary grew a new level.
+
+## 这不是 Cursor 插件 / Not the Cursor plugin
+
+这里的 [`/setup-pstack`](./skills/setup-pstack/SKILL.md) 只给 Grok Build 配模型和 effort。官方 Cursor `/setup-pstack`（Cursor 里，或 Grok Bot 里那份）是另一个插件。那份会写 `~/.cursor/rules`，并用 Cursor 的模型名。不要在 Grok Build 上跑那份，也不会在这里生效。
+
+[`/setup-pstack`](./skills/setup-pstack/SKILL.md) in this repo configures model and effort for grok-build. Official Cursor `/setup-pstack` (inside Cursor, or the copy inside Grok Bot) is a different plugin. That copy writes `~/.cursor/rules` and uses Cursor slugs. Do not run it on Grok Build. It will not work here.
+
+## 用法 / Usage
+
+任务开头用 [`/poteto-mode`](./skills/poteto-mode/SKILL.md)。它读请求、选一个玩法、按步骤去调其他 skill。
+
+Start a task with [`/poteto-mode`](./skills/poteto-mode/SKILL.md). It reads the request, picks a playbook, and runs the other skills as the steps need them.
+
+### 直接用 [`/poteto-mode`](./skills/poteto-mode/SKILL.md)
+
+这是主入口。需要严谨工程时从这里进。内置二十二个玩法：
+
+This is the main shortcut for rigorous engineering work. It ships twenty-two playbooks:
 
 ```
 /poteto-mode this pr has a subtle bug where the scroll drifts every 750ms even when idle. repro
@@ -60,7 +101,7 @@ morning.
 ```
 
 <details>
-<summary>the twenty-two playbooks</summary>
+<summary>二十二个玩法 / the twenty-two playbooks</summary>
 
 | playbook | for |
 |---|---|
@@ -89,24 +130,37 @@ morning.
 
 </details>
 
+调用之后它会：
 
+When invoked it:
 
-when invoked it:
+1. 打开 todo。第一项是读 skill 里的原则索引。
+2. 把任务匹配到一个 [玩法](./skills/poteto-mode/playbooks/)，把步骤原样拷进 todo。
+3. 步骤触发时转到其他 skill。
+4. 按读者和维护者各写一版、去掉 slop 的回复。
 
 1. opens a todo list. the first item is reading the inline principles index in the skill.
 2. matches your task to a [playbook](./skills/poteto-mode/playbooks/) and copies the steps in verbatim.
 3. routes to the other skills as the steps fire.
 4. writes unslopped replies framed for the consumer and the maintainer.
 
-the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/poteto-mode/SKILL.md).
+完整规则和玩法在 [`skills/poteto-mode/SKILL.md`](./skills/poteto-mode/SKILL.md)。
 
-[`/poteto-mode`](./skills/poteto-mode/SKILL.md) is also a sticky mode: once entered it stays on across turns, applying itself when a playbook matches or the task needs rigor and staying out of the way otherwise. opt out any time by saying so.
+The full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/poteto-mode/SKILL.md).
 
-[`/poteto-mode`](./skills/poteto-mode/SKILL.md) works with grok-build `/loop`, which expands to `scheduler_create`. you can leave a checkable predicate running for hours without sacrificing rigor.
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) 也是粘滞模式。进去之后跨轮次仍有效。匹配到玩法、或任务需要严谨时它会接手，否则让开。随时说一声就可以退出。
 
-## skills
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) is also a sticky mode. Once entered it stays on across turns, applying itself when a playbook matches or the task needs rigor, and staying out of the way otherwise. Opt out any time by saying so.
 
-[`/poteto-mode`](./skills/poteto-mode/SKILL.md) runs most of these for you when a step needs them (`how`, `why`, `architect`, `arena`, `swarm`, `interrogate`, `unslop`, `no-comments`, `technical-writing`, `tdd`, and the principles). the table below is for when you want one directly:
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) 能跟 grok-build `/loop` 一起用（展开为 `scheduler_create`）。可以把可检查的谓词挂几个小时，不必丢掉严谨性。
+
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) works with grok-build `/loop`, which expands to `scheduler_create`. You can leave a checkable predicate running for hours without sacrificing rigor.
+
+## 技能 / Skills
+
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) 会在步骤需要时替你跑其中大部分（`how`、`why`、`architect`、`arena`、`swarm`、`interrogate`、`unslop`、`no-comments`、`technical-writing`、`tdd`，以及原则）。下表是想单独点某个 skill 时用的。
+
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) runs most of these for you when a step needs them (`how`, `why`, `architect`, `arena`, `swarm`, `interrogate`, `unslop`, `no-comments`, `technical-writing`, `tdd`, and the principles). The table below is for when you want one directly:
 
 ```
 /how do we cancel runs? do we have an n+1 when we look up every run to cancel?
@@ -117,7 +171,7 @@ the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/po
 ```
 
 <details>
-<summary>all skills</summary>
+<summary>全部技能 / all skills</summary>
 
 | skill | use it when |
 |---|---|
@@ -147,15 +201,14 @@ the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/po
 
 </details>
 
+### 示例 / Examples
 
+多数任务在开头打 [`/poteto-mode`](./skills/poteto-mode/SKILL.md)，让它选玩法。其他 skill 由步骤按需触发。下面这些是偶尔直接点的。
 
-### examples
-
-mostly i type [`/poteto-mode`](./skills/poteto-mode/SKILL.md) at the start of a task and let it route to a playbook. the other skills fire as the steps need them. a few i reach for directly.
-
+Most tasks start with [`/poteto-mode`](./skills/poteto-mode/SKILL.md) and let it route to a playbook. The other skills fire as the steps need them. A few are worth invoking directly.
 
 <details>
-<summary>all the examples</summary>
+<summary>全部示例 / all the examples</summary>
 
 ```
 bug fix:           /poteto-mode this pr has a subtle bug where the scroll drifts every 750ms even
@@ -194,20 +247,28 @@ automate-me:       /automate-me
 
 </details>
 
-## the `poteto-agent` and Comment Sicko subagents
+## `poteto-agent` 与 Comment Sicko
 
-pstack also ships a subagent that runs the style end to end. spawn it from the parent via the `task` tool with `subagent_type: "poteto-agent"` when there is no role key. playbook roles (`feature`, `how-explainer`, …) spawn the matching plugin agent so shipped frontmatter `effort` applies, and so `/setup-pstack` overlays in `~/.grok/roles/` can override it. substituting `general-purpose` skips the poteto-mode read and drifts. the child cannot spawn further `task` children (`MAX_SUBAGENT_DEPTH` is 1). do not send `reasoning_effort` on `task`.
+本插件还带一个把这套风格跑到底的子 agent。没有角色键时，父会话用 `task` 的 `subagent_type: "poteto-agent"` 生成它。玩法角色（`feature`、`how-explainer` 等）生成对应的插件 agent，这样出厂 frontmatter `effort` 会生效，`/setup-pstack` 写在 `~/.grok/roles/` 里的覆盖也能生效。换成 `general-purpose` 会跳过 poteto-mode 的阅读，容易漂。子进程不能再 `task` 出更深的子进程（`MAX_SUBAGENT_DEPTH` 是 1）。不要在 `task` 上发送 `reasoning_effort`。
+
+This plugin also ships a subagent that runs the style end to end. Spawn it from the parent via the `task` tool with `subagent_type: "poteto-agent"` when there is no role key. Playbook roles (`feature`, `how-explainer`, …) spawn the matching plugin agent so shipped frontmatter `effort` applies, and so `/setup-pstack` overlays in `~/.grok/roles/` can override it. Substituting `general-purpose` skips the poteto-mode read and drifts. The child cannot spawn further `task` children (`MAX_SUBAGENT_DEPTH` is 1). Do not send `reasoning_effort` on `task`.
+
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) 和 [`subagent_type: "poteto-agent"`](./agents/poteto-agent.md) 走同一层包装。
 
 [`/poteto-mode`](./skills/poteto-mode/SKILL.md) and [`subagent_type: "poteto-agent"`](./agents/poteto-agent.md) route through the same wrapper.
 
-pstack also ships [Comment Sicko](./agents/comment-sicko.md), a read-only comment reviewer available as `subagent_type: "comment-sicko"`. usually invoke it through [`/no-comments`](./skills/no-comments/SKILL.md), not directly.
+另外还有 [Comment Sicko](./agents/comment-sicko.md)，只读评论审查，`subagent_type: "comment-sicko"`。一般通过 [`/no-comments`](./skills/no-comments/SKILL.md) 调用，不要直接开。
 
-## principles
+This plugin also ships [Comment Sicko](./agents/comment-sicko.md), a read-only comment reviewer available as `subagent_type: "comment-sicko"`. Usually invoke it through [`/no-comments`](./skills/no-comments/SKILL.md), not directly.
 
-twenty-one short skills, one principle each. `poteto-mode` indexes them inline and reads that index at task start. the standalone files are there so other skills can reference a principle by name, and so the index can point at the full rule for each.
+## 原则 / Principles
+
+二十一个短 skill，一条原则一个。`poteto-mode` 在开头内联索引并读一遍。独立文件是为了别的 skill 能按名字引用，以及索引能链到完整规则。
+
+Twenty-one short skills, one principle each. `poteto-mode` indexes them inline and reads that index at task start. The standalone files are there so other skills can reference a principle by name, and so the index can point at the full rule for each.
 
 <details>
-<summary>all twenty-one principles</summary>
+<summary>全部二十一条原则 / all twenty-one principles</summary>
 
 | principle | group | rule |
 |---|---|---|
@@ -235,31 +296,56 @@ twenty-one short skills, one principle each. `poteto-mode` indexes them inline a
 
 </details>
 
-## not shipped here
+## 本移植未带的东西 / Not shipped here
 
-a few things `poteto-mode` referenced in Cursor pstack and does not bundle here:
+Cursor 版 pstack 的 `poteto-mode` 还引用过这些，这里没有打包：
 
-- `/deslop`, `control-cli`, and `control-ui` lived in `cursor-team-kit`. use `/unslop`, `/no-comments`, and drive the real app yourself.
-- independent verify is `task` + `independent-verifier`. send a different `model` when the toml names a detected slug; otherwise omit `model`. not a Cursor Cloud Agent. see [HARNESS.md](./HARNESS.md).
-- Graphite `gt` is optional. if it is missing, use `gh` and git.
+A few things `poteto-mode` referenced in Cursor pstack and does not bundle here:
+
+- `/deslop`、`control-cli`、`control-ui` 在 `cursor-team-kit` 里。这里用 `/unslop`、`/no-comments`，应用自己去点、去跑。
+- 独立核验是 `task` + `independent-verifier`。toml 里是已探测到的 slug 时另传 `model`，否则省略 `model`。不是 Cursor Cloud Agent。见 [HARNESS.md](./HARNESS.md)。
+- Graphite `gt` 可选。没有就用 `gh` 和 git。
+- Benny 源码仍在 `automations/benny/`。Grok Build 的自动化是插件 hooks/workflows，不是这一包。
+
+- `/deslop`, `control-cli`, and `control-ui` lived in `cursor-team-kit`. Use `/unslop`, `/no-comments`, and drive the real app yourself.
+- Independent verify is `task` + `independent-verifier`. Send a different `model` when the toml names a detected slug; otherwise omit `model`. Not a Cursor Cloud Agent. See [HARNESS.md](./HARNESS.md).
+- Graphite `gt` is optional. If it is missing, use `gh` and git.
 - Benny remains under `automations/benny/` as source. Grok Build automations are plugin hooks/workflows, not this pack.
 
-## why are there no planning skills?
+## 为什么没有规划技能 / Why are there no planning skills?
 
-grok-build has a built-in `plan` agent type. pstack still does not default to planning. the best spec is code. if you do want a plan, [`/poteto-mode`](./skills/poteto-mode/SKILL.md) covers it. 
+grok-build 自带 `plan` agent 类型。pstack 仍然默认不规划。最好的规格是代码。如果确实要计划，[`/poteto-mode`](./skills/poteto-mode/SKILL.md) 覆盖得了。
 
-## make it yours
+grok-build has a built-in `plan` agent type. pstack still does not default to planning. The best spec is code. If you do want a plan, [`/poteto-mode`](./skills/poteto-mode/SKILL.md) covers it.
 
-`poteto-mode` is my style. you may not want exactly that.
+## 做成你自己的 / Make it yours
 
-type [`/automate-me`](./skills/automate-me/SKILL.md). it mines your recent transcripts, drafts a `<your-name>-mode` skill from how you've actually worked, and routes through pstack underneath. you keep pstack as the base and end up with your own routing skill alongside `poteto-mode`.
+`poteto-mode` 是 poteto 的风格。你可以不要一模一样的那套。
 
-the Grok Build default is `grok-4.6` plus per-role effort. type [`/setup-pstack`](./skills/setup-pstack/SKILL.md) only if you want to change that. it detects slugs your `task` tool accepts, asks for reasoning effort per role, and writes `~/.grok/pstack-models.toml` plus pstack-managed `~/.grok/roles/*.toml`. it will not write `~/.cursor/rules`. this is not the Cursor plugin.
+`poteto-mode` is poteto's style. You may not want exactly that.
 
-## automations
+输入 [`/automate-me`](./skills/automate-me/SKILL.md)。它从你最近的 transcript 里挖习惯，起草一个 `<your-name>-mode` skill，底层仍走 pstack。pstack 当底座，旁边多一个你自己的路由 skill。
 
-pstack also ships a dormant [benny automation pack](./automations/benny/). it is Cursor automation source, not a Grok Build hook pack. its files are not registered as slash skills. Grok equivalent is plugin `hooks/` plus workflows. not wired in this port.
+Type [`/automate-me`](./skills/automate-me/SKILL.md). It mines recent transcripts, drafts a `<your-name>-mode` skill from how you have actually worked, and routes through pstack underneath. You keep pstack as the base and end up with your own routing skill alongside `poteto-mode`.
 
-## license
+Grok Build 默认仍是 `grok-4.6` 加按角色的 effort。只有要改的时候才跑 [`/setup-pstack`](./skills/setup-pstack/SKILL.md)。它探测 `task` 能收的 slug，按角色问 reasoning effort，写入 `~/.grok/pstack-models.toml` 和由本插件管理的 `~/.grok/roles/*.toml`。它不会写 `~/.cursor/rules`。这不是 Cursor 插件。
 
-MIT
+The Grok Build default is `grok-4.6` plus per-role effort. Type [`/setup-pstack`](./skills/setup-pstack/SKILL.md) only if you want to change that. It detects slugs your `task` tool accepts, asks for reasoning effort per role, and writes `~/.grok/pstack-models.toml` plus pstack-managed `~/.grok/roles/*.toml`. It will not write `~/.cursor/rules`. This is not the Cursor plugin.
+
+## 自动化 / Automations
+
+仓库里还有一份休眠的 [benny automation pack](./automations/benny/)。那是 Cursor automation 源码，不是 Grok Build hook 包。文件没有注册成 slash skill。Grok 对应物是插件 `hooks/` 加 workflows。本移植没有接线。
+
+This repo also ships a dormant [benny automation pack](./automations/benny/). It is Cursor automation source, not a Grok Build hook pack. Its files are not registered as slash skills. The Grok equivalent is plugin `hooks/` plus workflows. Not wired in this port.
+
+可以 fork，可以改，欢迎 PR。
+
+Fork it. Improve it. PRs are welcome.
+
+## 许可 / License
+
+MIT.
+
+上游是 official pstack / poteto（Lauren Tan）。本仓库是 Grok Build 移植，作者是 [aa2246740/pstack-grokbuild](https://github.com/aa2246740/pstack-grokbuild)。
+
+Upstream is official pstack / poteto (Lauren Tan). This repository is the Grok Build port by [aa2246740/pstack-grokbuild](https://github.com/aa2246740/pstack-grokbuild).

@@ -1,9 +1,9 @@
 {
   "name": "pstack",
   "version": "0.14.7-grokbuild.0",
-  "description": "if you want to go fast, go deep first. pstack for Grok Build: 22 playbooks and 21 principles, with harness calls on grok-build tools.",
+  "description": "Grok Build port of official pstack by poteto (Lauren Tan). 22 playbooks and 21 principles stay; harness calls use grok-build tools.",
   "author": {
-    "name": "Lauren Tan"
+    "name": "aa2246740 / pstack-grokbuild"
   },
   "homepage": "https://github.com/aa2246740/pstack-grokbuild",
   "repository": "https://github.com/aa2246740/pstack-grokbuild",
