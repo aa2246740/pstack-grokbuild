@@ -230,13 +230,19 @@ def main() -> None:
         fail("defaults.toml [effort] bug-fix must match the ship-time ladder")
     if f'independent-verifier = "{role_effort["independent-verifier"]}"' not in defaults:
         fail("defaults.toml [effort] independent-verifier must match the ship-time ladder")
+    if '= "max"' in defaults:
+        fail("defaults.toml ships reserved max; live grok 1.0.5 CLI does not list max")
+    if "max" in SHIP_TIME_ENUM:
+        fail("SHIP_TIME_ENUM includes reserved max")
     skill_setup = (ROOT / "skills" / "setup-pstack" / "SKILL.md").read_text(encoding="utf-8")
     if "Effort options: inherit-parent, auto, none, minimal" in skill_setup:
         fail("setup-pstack SKILL.md still offers CLI-parseable none/minimal as Agent effort options")
-    if 'feature = "medium"' in defaults or 'refactoring = "medium"' in defaults:
-        fail("defaults.toml still hardcodes mechanical=medium; ship the resolved ladder split")
-    if "Shipped default (recommended). `medium`" in skill_setup:
-        fail("setup-pstack SKILL.md still has a handwritten medium effort default")
+    if "use one of:" not in skill_setup:
+        fail("setup-pstack SKILL.md must detect from live CLI use one of:")
+    if "expected one of:" in skill_setup:
+        fail("setup-pstack SKILL.md still prefers FromStr expected one of (includes reserved max)")
+    if "Do not offer `max`" not in skill_setup:
+        fail("setup-pstack SKILL.md must refuse reserved max unless the live CLI listed it")
     if "Do not invent `ultra`" not in skill_setup:
         fail("setup-pstack SKILL.md must refuse invented ultra")
     if "references/effort-ladder.md" not in skill_setup:
