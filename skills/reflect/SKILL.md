@@ -34,19 +34,21 @@ For each candidate, read the first JSONL line and check that `message.content[0]
 
 ### 2. Spawn three reviewers in parallel
 
-One message, three `task` calls, `subagent_type: "general-purpose"`, explicit `model:` on each. Reviewers need MCP access for context lookups (tickets, chat threads, observability traces referenced in the transcript). The prompt forbids file writes; the parent applies edits.
+One message, three `task` calls, `subagent_type: "general-purpose"`. Resolve `model` per `../setup-pstack/references/resolve-model.md`. Reviewers need MCP access for context lookups (tickets, chat threads, observability traces referenced in the transcript). The prompt forbids file writes; the parent applies edits.
 
-| Lens | `model` | Prompt template |
+| Lens | toml key | Prompt template |
 |---|---|---|
-| Judgment | your configured reflect-judgment model (default `claude-fable-5-thinking-max`) | `references/judgment-reviewer.md` |
-| Tooling | your configured reflect-tooling model (default `gpt-5.6-sol-max`) | `references/tooling-reviewer.md` |
-| Divergent | your configured reflect-judgment model (default `claude-fable-5-thinking-max`) | `references/divergent-reviewer.md` |
+| Judgment | `reflect-judgment` | `references/judgment-reviewer.md` |
+| Tooling | `reflect-tooling` | `references/tooling-reviewer.md` |
+| Divergent | `reflect-judgment` | `references/divergent-reviewer.md` |
+
+Omit `model` on a spawn when that key is missing, `inherit-parent`, or `auto`. Three lenses are three prompts, not a guessed multi-slug panel.
 
 Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings in the `task` response body.
 
 ### 3. Synthesize
 
-One `task` call, `subagent_type: "general-purpose"`, using your configured reflect-judgment model (default `claude-fable-5-thinking-max`). The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
+One `task` call, `subagent_type: "general-purpose"`, toml key `reflect-judgment` (omit `model` if missing/`inherit-parent`/`auto`). The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
 
 ### 4. Structural enforcement check
 
