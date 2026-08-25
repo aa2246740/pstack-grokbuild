@@ -3,6 +3,7 @@
 # Model: grok-4.6 for every role. Panel keys are one-entry arrays, not a
 # multi-model panel. If task rejects grok-4.6, omit model.
 # Effort: AgentDefinition::Effort::VALID_VALUES only (low, medium, high, xhigh, max).
+# Floor for shipped mechanical/fast roles is medium, not low.
 # Mapped from official pstack role intent (pstack tree pin
 # 46125561306434d8a1d7745d540d8932ab0cd2a2) onto those levels. This file
 # does not contain other products' panel slugs.
@@ -34,23 +35,23 @@ interrogate-reviewers = ["grok-4.6"]
 independent-verifier = "grok-4.6"
 
 [effort]
-feature = "low"
-refactoring = "low"
+feature = "medium"
+refactoring = "medium"
 bug-fix = "high"
 perf-issue = "high"
 hillclimb = "high"
 judgment-and-prose = "xhigh"
 hardest-tasks = "xhigh"
-how-explorer = "low"
+how-explorer = "medium"
 how-explainer = "xhigh"
 how-critics = "xhigh"
-why-investigators = "low"
+why-investigators = "medium"
 why-synthesizer = "xhigh"
 reflect-tooling = "high"
 reflect-judgment = "xhigh"
 arena-runners = "xhigh"
 arena-cross-judge-pool = "xhigh"
-swarm-workers = "low"
+swarm-workers = "medium"
 architect-runners = "xhigh"
 interrogate-reviewers = "xhigh"
 independent-verifier = "xhigh"
