@@ -1,7 +1,8 @@
 ---
 name: bug-fix
-description: pstack bug-fix writer. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/bug-fix.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack bug-fix writer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/bug-fix.toml.
 background: true
+effort: high
 ---
 
 # Bug Fix

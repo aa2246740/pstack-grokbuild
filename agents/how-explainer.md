@@ -1,7 +1,8 @@
 ---
 name: how-explainer
-description: pstack how explainer. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/how-explainer.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack how explainer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/how-explainer.toml.
 background: true
+effort: xhigh
 permissionMode: plan
 capabilityMode: execute
 inheritSkills: false

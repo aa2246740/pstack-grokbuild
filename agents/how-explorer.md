@@ -1,7 +1,8 @@
 ---
 name: how-explorer
-description: pstack how explorer. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/how-explorer.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack how explorer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/how-explorer.toml.
 background: true
+effort: low
 permissionMode: plan
 capabilityMode: execute
 inheritSkills: false

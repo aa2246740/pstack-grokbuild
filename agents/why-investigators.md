@@ -1,7 +1,8 @@
 ---
 name: why-investigators
-description: pstack why investigator. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/why-investigators.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack why investigator. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/why-investigators.toml.
 background: true
+effort: low
 ---
 
 # Why Investigators

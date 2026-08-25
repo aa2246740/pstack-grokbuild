@@ -1,7 +1,8 @@
 ---
 name: judgment-and-prose
-description: pstack judgment and prose writer. Same posture as the pstack role of this name. Setup may overlay reasoning effort via ~/.grok/roles/judgment-and-prose.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
+description: pstack judgment and prose writer. Same posture as the pstack role of this name. Shipped effort is frontmatter `effort`. Setup may overlay via ~/.grok/roles/judgment-and-prose.toml.
 background: true
+effort: xhigh
 ---
 
 # Judgment And Prose
