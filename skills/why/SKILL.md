@@ -117,7 +117,7 @@ Launch all matching investigators in a single message so they run concurrently. 
 
 Subagent config (each):
 - `subagent_type`: `why-investigators` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md))
-- `model`: toml key `why-investigators` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`. Do not send `reasoning_effort` on `task`.
+- `model`: toml key `why-investigators` per `../setup-pstack/references/resolve-model.md`. Per that file: no toml sends `grok-4.6` (omit if rejected); inherit-parent/auto/missing key omits. Do not send `reasoning_effort` on `task`.
 - MCP-backed work: spawn `why-investigators` and forbid writes in the prompt. Do not send `readonly` on `task`.
 
 Each investigator gets:
@@ -163,7 +163,7 @@ If your scope assessment suggests a single-commit trivial target where the PR de
 Spawn one synthesizer subagent:
 
 - `subagent_type`: `why-synthesizer` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md))
-- `model`: toml key `why-synthesizer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`. Do not send `reasoning_effort` on `task`.
+- `model`: toml key `why-synthesizer` per `../setup-pstack/references/resolve-model.md`. Per that file: no toml sends `grok-4.6` (omit if rejected); inherit-parent/auto/missing key omits. Do not send `reasoning_effort` on `task`.
 - MCP-backed work: spawn `why-synthesizer` and forbid writes in the prompt. Do not send `readonly` on `task`.
 
 The synthesizer gets:
