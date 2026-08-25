@@ -12,7 +12,7 @@ Enable it if it stays off (`grok plugin enable pstack`, or Space in the Plugins 
 
 ## Pick your models and effort (optional)
 
-The Grok Build default is `grok-4.6` for every role and a per-role effort on the plugin agents. You can start working without `/setup-pstack`.
+The Grok Build default is `grok-4.6` for every role and a three-tier effort split on the plugin agents (ship-time `max` / `xhigh` / `high`). You can start working without `/setup-pstack`. `/setup-pstack` re-detects the live grok-build effort enum and rewrites that split if it changed.
 
 To override, run:
 
