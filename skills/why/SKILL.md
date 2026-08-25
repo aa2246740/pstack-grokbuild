@@ -116,9 +116,9 @@ Aim for a complete **coverage map**, not a minimal one. A null result from an is
 Launch all matching investigators in a single message so they run concurrently. One investigator per category lets each specialize in one tool's query vocabulary and result shape. Don't ask one agent to cover multiple MCPs.
 
 Subagent config (each):
-- `subagent_type`: `general-purpose`
-- `model`: toml key `why-investigators` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
-- MCP-backed work: use `subagent_type: "general-purpose"` and forbid writes in the prompt. Do not send `readonly` on `task`.
+- `subagent_type`: `why-investigators` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md))
+- `model`: toml key `why-investigators` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`. Do not send `reasoning_effort` on `task`.
+- MCP-backed work: spawn `why-investigators` and forbid writes in the prompt. Do not send `readonly` on `task`.
 
 Each investigator gets:
 1. The base prompt from `references/investigator-prompt.md`
@@ -162,9 +162,9 @@ If your scope assessment suggests a single-commit trivial target where the PR de
 
 Spawn one synthesizer subagent:
 
-- `subagent_type`: `general-purpose`
-- `model`: toml key `why-synthesizer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
-- MCP-backed work: use `subagent_type: "general-purpose"` and forbid writes in the prompt. Do not send `readonly` on `task`.
+- `subagent_type`: `why-synthesizer` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md))
+- `model`: toml key `why-synthesizer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`. Do not send `reasoning_effort` on `task`.
+- MCP-backed work: spawn `why-synthesizer` and forbid writes in the prompt. Do not send `readonly` on `task`.
 
 The synthesizer gets:
 1. The investigator findings, including any null results and any categories skipped with justification
