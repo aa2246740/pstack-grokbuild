@@ -1,21 +1,33 @@
-### Feature
+# Feature Playbook
 
-**You own the design. Plan, review, verify.** Delegate implementation; stay in the lead.
+When to use: adding new functionality, not debugging or refactoring existing code.
 
-1. `how` over the affected subsystem.
-2. `architect` for parallel design exploration. Skipping stays as `architect skipped: <reason>`; do not fold the design decision silently into implementation.
-3. Write the throughput checkpoint as four todo items. A dimension that genuinely does not apply (single file, no fan-out) keeps its item with `n/a: <reason>` rather than being dropped:
-   - **Blocking first steps.** Gates run before fan-out.
-   - **Independent workstreams.** Disjoint files, services, or layers parallelize. Shared writes serialize.
-   - **Shared mutable state.** Default to splitting the target (the **separate-before-serializing-shared-state** principle skill). Serialize only for real invariants.
-   - **Smallest safe decomposition.** If one worker is best, name why.
-4. Delegate code-writing with parent-session `task` (`subagent_type: "poteto-agent"`, configured feature `model`, default `grok-4.6-fast-xhigh`) and a specific scope (file paths, named data shape and its organizing structure per **principle-model-the-domain** — a state machine over scattered booleans, a table/registry over branching, a typed model over repeated shape assumptions, chosen before the delegate writes logic — and success criteria). Review its diff yourself. Grok Build `MAX_SUBAGENT_DEPTH` is 1, so this parent owns every spawn. The child does not call `task`. When the implementation admits multiple valid shapes, parent-spawn **arena** instead. Independent verify is a second parent `task` with `subagent_type: "independent-verifier"`, a different `model`, and `isolation: "worktree"` when the writer still holds the tree. Mandatory: no skip-with-reason escape, and Laziness Protocol does not override it (the gain is review separation, not lines saved). Comments per **Comments**. Surgical edits, re-ground against the source for upstream-derived files. Port shared-primitive improvements to all consumers and verify each. Commit liberally.
-5. Verify on the matching surface. "Inconclusive" or wrong-surface is not a pass; flag it.
-6. Rebase into small, ordered commits; stack follow-ups.
-   Use the **sequence-verifiable-units** principle skill, building, verifying, and committing each small unit before the next.
-7. If the design is contested, `interrogate` before shipping.
-8. Run **Opening a PR**.
+## 1. Scope and spec
 
-Code-coupled work (one feature, one migration) goes to a single owner with the checkpoint inline; that owner fans out internally after the blocking phase. Parent-level fan-out is for slices that produce independent artifacts (audits, cross-subsystem investigations, competing experiments). Rewrite the checkpoint at phase boundaries; spawn a fresh owner rather than chaining interrupts.
+Read the request. Identify the user-visible change, the files/modules that will own it, and the acceptance criteria. If the request is vague, spawn a child to draft a one-page spec before writing code.
 
-**Reply:** what you built, what you chose and why, open decisions. Tables for design alternatives.
+If `pstack-models.toml` exists, spawn that spec child with `task.model` set to `[models.plan]`. If the toml is missing, a key is missing, or the value is `inherit-parent` or `auto`, omit `task.model` so the child uses the host default. Do not use Cursor Auto, Composer 1.5, or GPT-5.2 Codex as fallbacks.
+
+## 2. Design before code
+
+For anything beyond a few lines, spawn a child to propose the design: types, module boundaries, error paths, and what will not change. Parent reviews. Then implement.
+
+If `pstack-models.toml` exists, spawn that design child with `task.model` set to `[models.plan]`. If the toml is missing, a key is missing, or the value is `inherit-parent` or `auto`, omit `task.model` so the child uses the host default. Do not use Cursor Auto, Composer 1.5, or GPT-5.2 Codex as fallbacks.
+
+## 3. Implement
+
+Write the feature in the existing architecture. Match neighboring code. Do not invent a parallel pattern. Leave the codebase better than you found it for the next person who touches this area.
+
+If `pstack-models.toml` exists, spawn implementation children with `task.model` set to `[models.fast]`. If the toml is missing, a key is missing, or the value is `inherit-parent` or `auto`, omit `task.model` so the child uses the host default. Do not use Cursor Auto, Composer 1.5, or GPT-5.2 Codex as fallbacks.
+
+## 4. Verify
+
+Run tests and the typechecker. Add tests for the new behavior. If the feature has a UI, use a browser or the platform's equivalent and click through it — a green unit test is not the same as a working feature.
+
+If `pstack-models.toml` exists, spawn that verification child with `task.model` set to `[models.fast]`. If the toml is missing, a key is missing, or the value is `inherit-parent` or `auto`, omit `task.model` so the child uses the host default. Do not use Cursor Auto, Composer 1.5, or GPT-5.2 Codex as fallbacks.
+
+## 5. Review
+
+Before handing back, spawn a child to read the diff as a reviewer: bugs, missing tests, scope creep, accessibility, and security. Fix what it finds.
+
+If `pstack-models.toml` exists, spawn that review child with `task.model` set to `[models.review]`. If the toml is missing, a key is missing, or the value is `inherit-parent` or `auto`, omit `task.model` so the child uses the host default. Do not use Cursor Auto, Composer 1.5, or GPT-5.2 Codex as fallbacks.
