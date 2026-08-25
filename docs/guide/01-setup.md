@@ -1,6 +1,6 @@
 # Set up pstack
 
-In this page you install the plugin, pick models and reasoning effort, and run your first task. Setup is one command plus a short conversation.
+In this page you install the plugin, optionally pick models and reasoning effort, and run your first task. A fresh install already uses `grok-4.6` plus per-role effort. Setup is one command plus a short conversation if you want to change that.
 
 ## Install the plugin
 
@@ -10,19 +10,21 @@ grok plugin install aa2246740/pstack-grokbuild --trust
 
 Enable it if it stays off (`grok plugin enable pstack`, or Space in the Plugins tab). `grok inspect` should list pstack skills.
 
-## Pick your models and effort
+## Pick your models and effort (optional)
 
-Run:
+The Grok Build default is `grok-4.6` for every role and a per-role effort on the plugin agents. You can start working without `/setup-pstack`.
+
+To override, run:
 
 ```text
 /setup-pstack
 ```
 
-[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects slugs your `task` tool accepts, shows each role, and asks with `ask_user_question` for models and for reasoning effort. It writes `~/.grok/pstack-models.toml` and, for a real effort level, `~/.grok/roles/<role>.toml`. It never writes a Cursor rules file.
+[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects slugs your `task` tool accepts, shows each role, and asks with `ask_user_question` for models and for reasoning effort. First run can write the shipped default. It writes `~/.grok/pstack-models.toml` and, for a real effort level, `~/.grok/roles/<role>.toml`. It never writes a Cursor rules file.
 
 This repo is the Grok Build port. Grok Build setup configures model + effort. Official Cursor `/setup-pstack` (in Grok Bot or in Cursor) is a different plugin and still writes `~/.cursor/rules`.
 
-You only override what you care about. A missing model key means omit `task.model`. A missing effort key means skip the role overlay; the child inherits the parent. Skills never send `reasoning_effort` on `task`. Run `/setup-pstack` again to change it.
+A missing override file uses the shipped default. A missing model key in an existing file means omit `task.model`. Skills never send `reasoning_effort` on `task`. Run `/setup-pstack` again to change it.
 
 Set a role to `inherit-parent` or `auto` and pstack omits `task.model`, so the child inherits the parent. For a panel role the model value is an array, and one `task` spawn runs per entry. Effort is still one scalar per role.
 
