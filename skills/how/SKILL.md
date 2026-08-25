@@ -45,7 +45,7 @@ The right decomposition depends on the question. Use your judgment. Narrow quest
 Spawn all explorers in one parent turn with `task` (`run_in_background: true`). Join with `get_task_output`.
 
 - `subagent_type`: `explore`
-- `model`: your configured how-explorer model (default `grok-4.6-fast-xhigh`)
+- `model`: toml key `how-explorer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
 
 Each explorer gets the same base prompt from `references/explorer-prompt.md` plus a specific exploration angle naming its slice. Each explorer should:
 - Start broad: Glob for relevant directories, Grep for key types/interfaces/class names
@@ -63,7 +63,7 @@ Then proceed to Step 3.
 Spawn a single `task` child that explores and explains in one pass:
 
 - `subagent_type`: `explore`
-- `model`: your configured how-explainer model (default `claude-fable-5-thinking-max`)
+- `model`: toml key `how-explainer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
 
 The agent does its own exploration (Glob, Grep, Read) and writes the explanation directly. Read `references/explainer-prompt.md` for the communication style and output format. Same structure, just no explorer findings as input.
 
@@ -74,7 +74,7 @@ Proceed to Step 4.
 Once all explorers return, spawn a single `task` child to synthesize their findings into one coherent explanation:
 
 - `subagent_type`: `explore`
-- `model`: your configured how-explainer model (default `claude-fable-5-thinking-max`)
+- `model`: toml key `how-explainer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
 
 The explainer gets all explorers' findings and writes the human-facing explanation (output format below). Read `references/explainer-prompt.md` for the full prompt template. The explainer reconciles overlapping findings, resolves contradictions, and weaves the slices into a unified picture.
 
@@ -106,11 +106,11 @@ Run the full explain flow above (Steps 1-4). You must understand the architectur
 
 ### Step 2. Spawn Critics
 
-After the explanation is complete, spawn one architectural critic per model in your configured how-critics list (defaults `claude-fable-5-thinking-max`, `gpt-5.6-sol-max`, `grok-4.6-fast-xhigh`, `claude-opus-5-thinking-xhigh`), all in a single message.
+After the explanation is complete, spawn critics from toml array `how-critics` per `../setup-pstack/references/resolve-model.md`, all in a single message. If the file or key is absent, spawn **one** critic and omit `model`. Do not invent a multi-model panel.
 
 For each critic, parent-spawn `task`:
 - `subagent_type`: `explore`
-- `model`: one model from the configured how-critics list. These are minimum reasoning levels. The lead should escalate any model when the architecture warrants deeper analysis.
+- `model`: that array entry when it is a detected slug; omit when the entry is `inherit-parent`/`auto` or the key is missing.
 
 Read `references/critic-prompt.md` for the prompt template. Each critic gets:
 1. The explanation from Step 1 (so they don't re-explore)

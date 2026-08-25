@@ -31,8 +31,8 @@ Install this repo as a Grok Build plugin. Do not keep `.cursor-plugin`, `~/.curs
 | Ask the human (product/preference only) | `ask_user_question` with `questions: [{question, options: [{label, description, preview?}], multi_select?}]`. Not Cursor `AskQuestion`. | `ask_user_question/mod.rs` tool id `ask_user_question`; `AskUserQuestionInput` |
 | Recurring overnight loop | Slash `/loop` expands to **`scheduler_create`**. Fields: `interval` (`5m`/`2h`/`1d`, min 60s), `prompt`, `durable?`, `foreground?`, `fire_immediately` (default false; `/loop` instruction sets true). Update in place with `task_id`. Cancel with `scheduler_delete` `{id}`. One-shot delayed work is `sleep && cmd` in a background shell, not the scheduler. | `xai-grok-tools-api/src/slash_commands.rs`; `scheduler/create.rs`; `scheduler/delete.rs` |
 | Watch a process / PR | `monitor` with `command`, `description`, `timeout_ms?` (default 10h), `persistent?`. Kill with `kill_task`. Do not poll. | `monitor/tool.rs`; `monitor/types.rs` `MonitorInput` |
-| Model per pstack role | `~/.grok/pstack-models.toml`, written by `/setup-pstack`. Skills read it. Not `~/.cursor/rules/*.mdc`. Optional extra: `[subagents.models]` in `~/.grok/config.toml` only maps **agent types** (`explore`, `plan`), not pstack roles. | `setup-pstack/SKILL.md`; grok-build `[subagents.models]` in `16-subagents.md` |
-| Independent verify | Parent calls `task` with `subagent_type: "independent-verifier"` (or `pstack:independent-verifier`), a **different `model`** from the writer, `isolation: "worktree"` when the child must not touch the writer's tree. The verifier does not write the diff. Not a Cursor Cloud Agent. | this file; `agents/independent-verifier.md` |
+| Model per pstack role | `~/.grok/pstack-models.toml`, written by `/setup-pstack`. Skills read it. Absent file, missing key, `inherit-parent`, or `auto`: omit `task.model`. Never write Cursor rules files. Optional extra: `[subagents.models]` in `~/.grok/config.toml` only maps **agent types** (`explore`, `plan`), not pstack roles. | `setup-pstack/SKILL.md`; grok-build `[subagents.models]` in `16-subagents.md` |
+| Independent verify | Parent calls `task` with `subagent_type: "independent-verifier"` (or `pstack:independent-verifier`). Send a **different** `model` when toml `independent-verifier` is a detected slug ≠ the writer; otherwise omit `model`. `isolation: "worktree"` when the child must not touch the writer's tree. The verifier does not write the diff. Not a Cursor Cloud Agent. | this file; `agents/independent-verifier.md` |
 | Cursor Cloud `environment: "cloud"` | Dropped. Use `isolation: "worktree"` plus `run_in_background: true`. | `TaskToolInput.isolation` |
 | Graphite `gt` / `graphite-base` | Optional if `gt` is on PATH. Otherwise `gh` + git. Playbook steps stay; the CLI is not assumed. | playbooks, rewritten call sites |
 | `cursor-team-kit` (`deslop`, `control-ui`, `control-cli`) | Not in this plugin. `/unslop` and `/no-comments` remain. Drive the real app yourself (browser, CLI, tests). | pstack README "not shipped here" |
@@ -74,7 +74,7 @@ task
   description: <3-5 words>
   subagent_type: poteto-agent | explore | general-purpose | independent-verifier | comment-sicko
   run_in_background: true
-  model: <slug from ~/.grok/pstack-models.toml, or omit to inherit>
+  model: <slug from ~/.grok/pstack-models.toml when that key is a detected slug; omit if the file/key is absent or inherit-parent/auto>
   isolation: none | worktree
 ```
 
@@ -84,4 +84,4 @@ Code-writing delegates: `poteto-agent`.
 Read-only codebase walks (`how` explorers/explainers/critics): `explore`.
 MCP-backed `why` investigators: `general-purpose` (explore cannot be assumed to keep MCP). Instruct no writes in the prompt. Posture, not a sandbox.
 `/no-comments`: `comment-sicko`.
-Independent verify: `independent-verifier` plus a different `model`.
+Independent verify: `independent-verifier` plus toml `independent-verifier` when that key is a detected slug different from the writer; otherwise omit `model`.

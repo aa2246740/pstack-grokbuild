@@ -117,7 +117,7 @@ Launch all matching investigators in a single message so they run concurrently. 
 
 Subagent config (each):
 - `subagent_type`: `general-purpose`
-- `model`: your configured why-investigators model (default `grok-4.6-fast-xhigh`)
+- `model`: toml key `why-investigators` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
 - MCP-backed work: use `subagent_type: "general-purpose"` and forbid writes in the prompt. Do not send `readonly` on `task`.
 
 Each investigator gets:
@@ -163,7 +163,7 @@ If your scope assessment suggests a single-commit trivial target where the PR de
 Spawn one synthesizer subagent:
 
 - `subagent_type`: `general-purpose`
-- `model`: your configured why-synthesizer model (default `claude-fable-5-thinking-max`)
+- `model`: toml key `why-synthesizer` per `../setup-pstack/references/resolve-model.md`. Omit if missing/`inherit-parent`/`auto`.
 - MCP-backed work: use `subagent_type: "general-purpose"` and forbid writes in the prompt. Do not send `readonly` on `task`.
 
 The synthesizer gets:
