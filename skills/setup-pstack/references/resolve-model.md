@@ -10,4 +10,4 @@ Every pstack skill that spawns `task` uses this rule. Read it once, then apply i
 6. Architect without a toml may still spawn **two** children with `model` omitted (same parent model twice) when the skill requires two structurally distinct sketches. That is two prompts, not two invented slugs.
 7. If `task` rejects a slug, omit `model` or retry only with a slug the error text named that is already in this session's detected set. Do not pick a "closest family equivalent."
 
-This plugin is the Grok Build port. It does not write Cursor rules files and it does not ship a Cursor model panel as a fallback.
+This plugin is the Grok Build port. It writes only `~/.grok/pstack-models.toml`. It does not ship a fallback slug list.
