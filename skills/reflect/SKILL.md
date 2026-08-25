@@ -34,7 +34,7 @@ For each candidate, read the first JSONL line and check that `message.content[0]
 
 ### 2. Spawn three reviewers in parallel
 
-One message, three `task` calls, `subagent_type: "general-purpose"`. Resolve `model` per `../setup-pstack/references/resolve-model.md`. Reviewers need MCP access for context lookups (tickets, chat threads, observability traces referenced in the transcript). The prompt forbids file writes; the parent applies edits.
+One message, three `task` calls. Judgment and divergent lenses use `subagent_type: "reflect-judgment"`. Tooling uses `subagent_type: "reflect-tooling"`. Bare names; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md). Resolve `model` per `../setup-pstack/references/resolve-model.md`. Do not send `reasoning_effort` on `task`. Reviewers need MCP access for context lookups (tickets, chat threads, observability traces referenced in the transcript). The prompt forbids file writes; the parent applies edits.
 
 | Lens | toml key | Prompt template |
 |---|---|---|
@@ -48,7 +48,7 @@ Pass each template verbatim, substituting the transcript path or digest where ma
 
 ### 3. Synthesize
 
-One `task` call, `subagent_type: "general-purpose"`, toml key `reflect-judgment` (omit `model` if missing/`inherit-parent`/`auto`). The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
+One `task` call, `subagent_type: "reflect-judgment"`, toml key `reflect-judgment` (omit `model` if missing/`inherit-parent`/`auto`). Do not send `reasoning_effort` on `task`. The synthesizer's quality check includes spot-verifying citations, which can require MCP access. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
 
 ### 4. Structural enforcement check
 

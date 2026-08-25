@@ -1,7 +1,6 @@
 ---
 name: independent-verifier
-description: Read-only independent verifier. Use when pstack needs a second spawn that did not write the diff. Different model from the writer. Does not edit files.
-effort: high
+description: Read-only independent verifier. Use when pstack needs a second spawn that did not write the diff. Different model from the writer. Does not edit files. Setup may overlay reasoning effort via ~/.grok/roles/independent-verifier.toml. Do not put effort in this frontmatter: missing overlay inherits the parent.
 background: true
 ---
 

@@ -119,6 +119,9 @@ def main() -> None:
         "agents/poteto-agent.md",
         "agents/comment-sicko.md",
         "agents/independent-verifier.md",
+        "agents/feature.md",
+        "agents/how-explainer.md",
+        "skills/setup-pstack/references/resolve-effort.md",
         "HARNESS.md",
     ):
         if not (ROOT / required).is_file():
@@ -134,6 +137,9 @@ def main() -> None:
         "get_task_output",
         "isolation",
         "independent-verifier",
+        "select_role",
+        "SubagentRole",
+        "reasoning_effort",
     ):
         if token not in harness:
             fail(f"HARNESS.md missing {token}")
@@ -168,6 +174,46 @@ def main() -> None:
             "Cursor panel slugs in skills/ (omit task.model instead):\n  "
             + "\n  ".join(slug_hits)
         )
+
+    role_keys = (
+        "feature",
+        "refactoring",
+        "bug-fix",
+        "perf-issue",
+        "hillclimb",
+        "judgment-and-prose",
+        "hardest-tasks",
+        "how-explorer",
+        "how-explainer",
+        "how-critics",
+        "why-investigators",
+        "why-synthesizer",
+        "reflect-tooling",
+        "reflect-judgment",
+        "arena-runners",
+        "arena-cross-judge-pool",
+        "swarm-workers",
+        "architect-runners",
+        "interrogate-reviewers",
+        "independent-verifier",
+    )
+    for key in role_keys:
+        path = ROOT / "agents" / f"{key}.md"
+        if not path.is_file():
+            fail(f"missing role agent agents/{key}.md")
+        text = path.read_text(encoding="utf-8")
+        fm = text.split("---", 2)
+        if len(fm) < 3:
+            fail(f"{path.relative_to(ROOT)}: missing frontmatter")
+        if re.search(r"(?m)^effort\s*:", fm[1]):
+            fail(
+                f"{path.relative_to(ROOT)}: frontmatter effort would block inherit-parent; "
+                "overlay lives in ~/.grok/roles/"
+            )
+
+    agent_files = list((ROOT / "agents").glob("*.md"))
+    if len(agent_files) != 22:
+        fail(f"expected 22 agents/*.md, got {len(agent_files)}")
 
     # Not a TEST-PLAN pass gate. Catches the adapter eating "never create
     # ~/.cursor/rules" or rewriting TEST-PLAN FAIL tokens on a second run.

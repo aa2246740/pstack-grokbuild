@@ -27,7 +27,7 @@ Open a todolist with one entry per phase before launching anything.
 
 ## Phase B: Fan out
 
-Spawn all N workers in one parent turn with `task`: `subagent_type: "general-purpose"` (or `explore` when the brief is read-only), `isolation: "worktree"`, `run_in_background: true`, and the configured `model`. Use `isolation: "none"` only when the worker needs this machine's cwd. Join with `get_task_output`.
+Spawn all N workers in one parent turn with `task`: `subagent_type: "swarm-workers"` (bare name; [`../setup-pstack/references/resolve-effort.md`](../setup-pstack/references/resolve-effort.md)), `isolation: "worktree"`, `run_in_background: true`, and the configured `model`. Use `isolation: "none"` only when the worker needs this machine's cwd. Do not send `reasoning_effort` on `task`. Join with `get_task_output`.
 
 Every brief stands alone. Include the goal, scope, exact slice or race arm, how to verify, and what to report. Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence.
 

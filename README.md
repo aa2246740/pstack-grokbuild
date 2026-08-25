@@ -10,7 +10,7 @@ this is pstack for [Grok Build](https://github.com/xai-org/grok-build). the 22 p
 
 **pstack gives you fearless parallelism.** when you can go deep on one agent and trust it to write good, verifiable code, you can truly parallelize with confidence. start with `poteto-mode` and trust that they'll apply rigorous engineering principles to their work.
 
-**use the models you have.** every frontier model has its strengths and weaknesses. `/setup-pstack` maps roles onto slugs your `task` tool accepts.
+**use the models and effort you have.** `/setup-pstack` maps roles onto slugs your `task` tool accepts and onto grok-build reasoning-effort levels. this is the Grok Build plugin, not the Cursor one.
 
 fork it. improve it. make it yours. PRs are welcome! 
 
@@ -32,14 +32,14 @@ then enable it (`grok plugin enable pstack` or Space in the Plugins tab). harnes
 
 two steps:
 
-1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md) and choose which models you want.
+1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md) and choose models and reasoning effort per role.
 2. use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) whenever you're doing anything that requires rigor.
 
 new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
 
-that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box, children inherit the parent model. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) writes `~/.grok/pstack-models.toml` when you want a role on a slug your `task` tool accepted this session. missing file, missing key, `inherit-parent`, or `auto` means omit `task.model`.
+that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box, children inherit the parent model and the parent effort. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) writes `~/.grok/pstack-models.toml` (slugs plus `[effort]`) and, for a real effort level, `~/.grok/roles/<role>.toml`. missing file, missing key, `inherit-parent`, or `auto` means omit `task.model` and skip the role overlay. skills never send `reasoning_effort` on `task`.
 
-this repo is the **Grok Build port**. official Cursor `/setup-pstack` (inside Grok Bot or inside Cursor) is a different plugin. that copy still writes `~/.cursor/rules` and uses Cursor slugs. do not install it on Grok Build and expect it to work.
+this repo is the **Grok Build port**. `/setup-pstack` here configures model + effort for grok-build. official Cursor `/setup-pstack` (inside Grok Bot or inside Cursor) is a different plugin. that copy still writes `~/.cursor/rules` and uses Cursor slugs. do not install it on Grok Build and expect it to work.
 
 ## usage
 
@@ -131,7 +131,7 @@ the full rules and playbooks live in [`skills/poteto-mode/SKILL.md`](./skills/po
 | [`/swarm`](./skills/swarm/SKILL.md) | you want N parallel workers across different slices or races, then one aggregated report. |
 | [`/interrogate`](./skills/interrogate/SKILL.md) | you have a diff and want several different models to try to break it, including a strict code-quality lens. |
 | [`/automate-me`](./skills/automate-me/SKILL.md) | you want your own `-mode` skill, drafted from how you've actually worked. |
-| [`/setup-pstack`](./skills/setup-pstack/SKILL.md) | you want to pick which models pstack uses per role. detects your models and writes `~/.grok/pstack-models.toml`. |
+| [`/setup-pstack`](./skills/setup-pstack/SKILL.md) | you want to pick models and reasoning effort per role. detects your models and writes `~/.grok/pstack-models.toml` plus `~/.grok/roles/*.toml`. |
 | [`/reflect`](./skills/reflect/SKILL.md) | a long task landed and you want the recipe captured as a skill edit. |
 | [`/teach`](./skills/teach/SKILL.md) | you want to actually understand a change or subsystem, not just have it summarized. runs how + why and weaves one plain explanation, built up diagram by diagram. |
 | [`/tdd`](./skills/tdd/SKILL.md) | you're fixing a bug and there's a cheap local test path. write the failing test first, then the fix. |
@@ -196,7 +196,7 @@ automate-me:       /automate-me
 
 ## the `poteto-agent` and Comment Sicko subagents
 
-pstack also ships a subagent that runs the style end to end. spawn it from the parent via the `task` tool with `subagent_type: "poteto-agent"`. it reads `poteto-mode` in full, including its inline principles index, before doing any work. substituting `general-purpose` skips that read and drifts. the child cannot spawn further `task` children (`MAX_SUBAGENT_DEPTH` is 1).
+pstack also ships a subagent that runs the style end to end. spawn it from the parent via the `task` tool with `subagent_type: "poteto-agent"` when there is no role key. playbook roles (`feature`, `how-explainer`, …) spawn the matching plugin agent so `/setup-pstack` effort overlays in `~/.grok/roles/` apply. substituting `general-purpose` skips the poteto-mode read and drifts. the child cannot spawn further `task` children (`MAX_SUBAGENT_DEPTH` is 1). do not send `reasoning_effort` on `task`.
 
 [`/poteto-mode`](./skills/poteto-mode/SKILL.md) and [`subagent_type: "poteto-agent"`](./agents/poteto-agent.md) route through the same wrapper.
 
@@ -254,7 +254,7 @@ grok-build has a built-in `plan` agent type. pstack still does not default to pl
 
 type [`/automate-me`](./skills/automate-me/SKILL.md). it mines your recent transcripts, drafts a `<your-name>-mode` skill from how you've actually worked, and routes through pstack underneath. you keep pstack as the base and end up with your own routing skill alongside `poteto-mode`.
 
-models are configurable too. type [`/setup-pstack`](./skills/setup-pstack/SKILL.md). it detects slugs your `task` tool accepts and writes **only** `~/.grok/pstack-models.toml`. it will not write `~/.cursor/rules`.
+models and effort are configurable too. type [`/setup-pstack`](./skills/setup-pstack/SKILL.md). it detects slugs your `task` tool accepts, asks for reasoning effort per role, and writes `~/.grok/pstack-models.toml` plus pstack-managed `~/.grok/roles/*.toml`. it will not write `~/.cursor/rules`. this is not the Cursor plugin.
 
 ## automations
 
