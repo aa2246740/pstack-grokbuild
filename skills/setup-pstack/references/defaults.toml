@@ -2,10 +2,12 @@
 # and as the first-run /setup-pstack example when live effort detection fails.
 # Model: grok-4.6 for every role. Panel keys are one-entry arrays, not a
 # multi-model panel. If task rejects grok-4.6, omit model.
-# Effort: ship-time snapshot of grok-build Effort::VALID_VALUES
-# (pin c2ad97f87aea4303b6000a2c22128bc91ee76c9b), resolved by
-# effort-ladder.md: judgment=max, instruction=xhigh, mechanical=high.
-# /setup-pstack re-detects the live enum and rewrites [effort] if it differs.
+# Effort: ship-time snapshot of the grok 1.0.5 CLI usable set
+# (use one of: xhigh, high, medium, low). Not Effort::VALID_VALUES
+# (that list includes reserved max, which this CLI rejects).
+# effort-ladder.md: judgment=xhigh, instruction=high, mechanical=medium.
+# /setup-pstack re-detects from live `use one of:` and rewrites [effort]
+# if it differs. Do not offer max unless that live list named it.
 # inherit-parent or auto: omit task.model. Missing key in an existing toml:
 # same as inherit-parent for models.
 # [effort] inherit-parent or auto: do not write ~/.grok/roles/<key>.toml.
@@ -34,23 +36,23 @@ interrogate-reviewers = ["grok-4.6"]
 independent-verifier = "grok-4.6"
 
 [effort]
-feature = "high"
-refactoring = "high"
-bug-fix = "xhigh"
-perf-issue = "xhigh"
-hillclimb = "xhigh"
-judgment-and-prose = "max"
-hardest-tasks = "max"
-how-explorer = "high"
-how-explainer = "max"
-how-critics = "max"
-why-investigators = "high"
-why-synthesizer = "max"
-reflect-tooling = "xhigh"
-reflect-judgment = "max"
-arena-runners = "max"
-arena-cross-judge-pool = "max"
-swarm-workers = "high"
-architect-runners = "max"
-interrogate-reviewers = "max"
-independent-verifier = "max"
+feature = "medium"
+refactoring = "medium"
+bug-fix = "high"
+perf-issue = "high"
+hillclimb = "high"
+judgment-and-prose = "xhigh"
+hardest-tasks = "xhigh"
+how-explorer = "medium"
+how-explainer = "xhigh"
+how-critics = "xhigh"
+why-investigators = "medium"
+why-synthesizer = "xhigh"
+reflect-tooling = "high"
+reflect-judgment = "xhigh"
+arena-runners = "xhigh"
+arena-cross-judge-pool = "xhigh"
+swarm-workers = "medium"
+architect-runners = "xhigh"
+interrogate-reviewers = "xhigh"
+independent-verifier = "xhigh"
